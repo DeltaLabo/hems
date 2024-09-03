@@ -1,0 +1,58 @@
+import serial
+import pandas as pd
+import csv
+#hola
+sensorData = serial.Serial(port='COM15', baudrate=9600, bytesize=8,
+                            parity='N', stopbits=1, timeout=1)
+
+
+sensorData.close()
+sensorData.open()
+sensorData.flush()
+
+HORA = []
+TGBHi = []
+TGBHe = []
+BS = []
+GLOBO = []
+HR = []
+HDX = []
+list = []
+
+filename = "prueba.csv"
+
+def csv_write(filename):
+    with open(filename, "w+", newline="") as file:
+        write = csv.writer(file)
+        write.writerows(list)
+
+found_hora = False
+
+while True:
+    
+    line = sensorData.readline().decode('utf-8').strip()
+
+    if "HORA" in line:
+        found_hora = True
+        continue  
+    
+    if found_hora:
+        if line and not line.startswith("-----"):
+            data = line.split()
+            if len(data) == 7: 
+                HORA.append(data[0])
+                TGBHi.append(data[1])
+                TGBHe.append(data[2])
+                BS.append(data[3])
+                GLOBO.append(data[4])
+                HR.append(data[5])
+                HDX.append(data[6])
+
+for i in range(len(HORA)):
+    list.append([HORA[i], TGBHi[i], TGBHe[i], BS[i], GLOBO[i], HR[i], HDX[i]])
+
+csv_write(filename)
+
+sensorData.close()
+
+print(f"Datos guardados en {filename}")
