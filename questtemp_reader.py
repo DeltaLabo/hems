@@ -5,9 +5,9 @@ from datetime import datetime
 today = datetime.today().strftime('%Y-%m-%d')
 
 # Create the filename using the date
-filename = f"{today}.csv"
+filename = f"questtemp_{today}.csv"
 
-questTemp = serial.Serial(port='COM12', baudrate=9600, bytesize=8,
+questTemp = serial.Serial(port='COM4', baudrate=9600, bytesize=8,
                             parity='N', stopbits=1, timeout=1)
 
 

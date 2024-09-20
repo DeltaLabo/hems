@@ -7,8 +7,8 @@
 #define DEBUG false
 
 // Definición de la red WiFi
-const char* ssid = "LaboratorioDelta";   // Tu red WiFi SSID
-const char* password = "labdelta21!";    // Tu contraseña WiFi
+const char* ssid = "Grace";   // Tu red WiFi SSID
+const char* password = "Sanfra24";    // Tu contraseña WiFi
 
 // NTP server
 const char* ntpServer = "pool.ntp.org";

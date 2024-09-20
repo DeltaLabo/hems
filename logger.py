@@ -1,10 +1,22 @@
 import serial
 import datetime
+import csv
 from matplotlib import pyplot as plt
 from drawnow import drawnow
 
+
+today = datetime.date.today().strftime('%Y-%m-%d')
+
+# Create the filename using the date
+filename = f"hems_{today}.csv"
+
+def csv_write(filename):
+    global lista
+    with open(filename, "w+", newline="") as file:
+        write = csv.writer(file)
+        write.writerows(lista)
 # Inicializa el serial
-hems = serial.Serial('COM3',
+hems = serial.Serial('COM5',
                      baudrate=9600,
                      bytesize=8,
                      parity='N',
@@ -16,13 +28,15 @@ hems.close()
 hems.open()
 hems.flush()
 
-time = []
+time1 = []
+time2 = []
 temp1 = []
 temp2 = []
 pres1 = []
 pres2 = []
 humi1 = []
 humi2 = []
+lista = []
 
 # plt.ion()     # tell matplotlib you want interactive mode to plot data
 # fig = plt.figure()
@@ -30,27 +44,33 @@ humi2 = []
 def in_figure() -> None:
     # Función para "imprimir" los últimos 100 datas de distancia
     ax1 = plt.subplot()
-    plt.plot(time[-100:], temp1[-100:])
+    plt.plot(time1[-100:], temp1[-100:])
     ax1.set(xlabel='time (s)', ylabel='X',
             title='measurements')
 
 while True:
     line = hems.readline()
-    print(line)
-    if (line[:4].decode("ascii") == str(datetime.date.today().year)):
-        data = line[:-2].decode("ascii").split(sep=",")
-        time.append(data[0])
-        if data[1] == '1':
-            temp1.append(data[2])
-            pres1.append(data[3])
-            humi1.append(data[4])
-        
-        if data[1] == '2':
-            temp2.append(data[2])
-            pres2.append(data[3])
-            humi2.append(data[4])
 
-    #drawnow(in_figure)
+    if (line[:4].decode("utf-8") == str(datetime.date.today().year)):
+        lista.append(line[:-2].decode("utf-8").split(sep=","))
+        csv_write(filename)
+        
+        #print(line[:-2].decode("utf-8"))
+        if lista[-1][1] == '1':
+            time1.append(lista[-1][0])
+            temp1.append(lista[-1][2])
+            pres1.append(lista[-1][3])
+            humi1.append(lista[-1][4])
+        
+        # if data[1] == '2':
+        #     temp2.append(data[2])
+        #     pres2.append(data[3])
+        #     humi2.append(data[4])
+
+        # print(line[:-2].decode("utf-8"))
+        # lista.append([times.text, t1.text, t2.text, t3.text, t4.text, tavg.text, tref.text, draw_volt, draw_curr,capmeas, state])
+
+    drawnow(in_figure)
 
 
     
