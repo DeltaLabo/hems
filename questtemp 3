@@ -1,0 +1,60 @@
+import serial
+import pandas as pd
+from datetime import datetime
+
+today = datetime.today().strftime('%Y-%m-%d')
+
+filename = f"questtemp_{today}.csv"
+
+questTemp = serial.Serial(port='COM15', baudrate=9600, bytesize=8,
+                          parity='N', stopbits=1, timeout=1)
+
+questTemp.close()
+questTemp.open()
+questTemp.flush()
+
+data_list = []
+line = ''
+skip_lines = 0  
+sesion = None
+
+byte_sesion = b'\x0cSesion :'
+byte_salto = b'\x1a'
+
+while True:
+    line = questTemp.readline()
+
+    if byte_sesion in line and sesion==None:
+        skip_lines = 7  
+
+    if skip_lines > 0:
+        skip_lines -= 1
+        continue 
+
+    if skip_lines == 0: 
+        while (not line.startswith(b'\x0c\r\n')):
+                line = questTemp.readline()
+                if not line.startswith(b'\x0c\r\n'):
+                    values = line.decode("utf-8")[:-2].split("  ")
+                    date_value = pd.to_datetime(values[0])  # Convert the first value to a date
+                    int_values = [float(value) for value in values[1:]]  # Convert the rest to integers
+                    values = [date_value] + int_values
+                    values.insert(0,sesion)
+                    data_list.append(values)
+        
+    if byte_sesion in line and sesion!=None:
+        skip_lines = 7
+    if byte_salto in line:
+         next_line = questTemp.readline()
+         if next_line.strip():
+              continue
+         else:
+              break
+
+
+# Crear un DataFrame con los datos
+data = pd.DataFrame(data_list, columns=['session', 'timestamp', 'tgbhi', 'tgbhe', 'bh', 'bs', 'globo', 'hr', 'hdx'])
+filename = f"questtemp_{today}.csv"
+data.to_csv(filename, index=None)
+
+print(data.head())
