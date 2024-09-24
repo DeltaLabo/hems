@@ -32,8 +32,6 @@ while(EOFf == False):
     elif (source == 'a'):
         line = questTemp.readline()
 
-    print(line[:-1])
-
     if line[:-1].endswith('Pagina 1'):
         counter = 33
 
@@ -61,7 +59,8 @@ data = pd.DataFrame(data_list, columns=['session','timestamp','tgbhi','tgbhe','b
 
 data.to_csv(filename,
             index=None)
-print(data.head())
+
+print(data.head(50))
 
 data = data[data['session'] == 1]
 
