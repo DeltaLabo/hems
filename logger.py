@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from drawnow import drawnow
 
 
-today = datetime.date.today().strftime('%Y-%m-%d')
+today = datetime.date.today().strftime('%Y-%m-%d-%H-%M')
 
 # Create the filename using the date
 filename = f"hems_{today}.csv"
