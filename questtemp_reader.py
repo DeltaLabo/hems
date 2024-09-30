@@ -33,9 +33,6 @@ data_list = []
 line = ''
 EOFf = False
 
-
-
-
 while(EOFf == False):
     if (source == 's'):
         line = questTemp.readline().decode('ascii')
