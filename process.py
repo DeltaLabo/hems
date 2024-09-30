@@ -1,9 +1,11 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 
-questTemp = pd.read_csv('2024-09-06.csv')
+questTemp = pd.read_csv('questtemp_2024-09-25-17-09.csv')
 
 print(questTemp.head())
+
+questTemp = questTemp[questTemp['session'] == 1]
 
 plt.figure()
 plt.plot(questTemp.timestamp,questTemp.tgbhi)

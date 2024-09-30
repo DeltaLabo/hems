@@ -7,8 +7,8 @@
 #define DEBUG false
 
 // Definición de la red WiFi
-const char* ssid = "Grace";   // Tu red WiFi SSID
-const char* password = "Sanfra24";    // Tu contraseña WiFi
+const char* ssid = "LaboratorioDelta";   // Tu red WiFi SSID
+const char* password = "labdelta21!";    // Tu contraseña WiFi
 
 // NTP server
 const char* ntpServer = "pool.ntp.org";
@@ -31,7 +31,7 @@ void ARDUINO_ISR_ATTR onTimer() {
 }
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(38400);
   // Inicializar sensores
   if ( bme1.begin(0x76) & bme2.begin(0x77)) {
     if (DEBUG) Serial.println("BME280 sensors in address 0x76 and 0x77 conected");
