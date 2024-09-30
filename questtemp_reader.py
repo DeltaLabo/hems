@@ -15,8 +15,6 @@ if (source == "a"):
 elif (source == 's'):
     questTemp = serial.Serial(port='COM4', baudrate=9600, bytesize=8,
                             parity='N', stopbits=1, timeout=1)
-
-if (source == 's'):
     questTemp.close()
     questTemp.open()
     questTemp.flush()
@@ -32,19 +30,19 @@ while(EOFf == False):
     elif (source == 'a'):
         line = questTemp.readline()
 
+    if counter > 0:
+        counter -= 1
+
     if line[:-1].endswith('Pagina 1'):
-        counter = 33
+        counter = 32
 
     if line.endswith('\x1a'):
         EOFf = True
 
     if line.startswith('\x0cSesion :') == True:
         sesion = int(line[10])
-        counter = 8
+        counter = 7
 
-    if counter > 0:
-        counter -= 1
-    
     if counter == 0:
         if (not line[:-1].endswith('\x0c')):
             values = line[:-2].split("  ")
