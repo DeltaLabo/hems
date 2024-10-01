@@ -2,7 +2,7 @@
 #include <Adafruit_BME280.h>
 #include <ESP32Time.h>  //Libreria para usar el timer
 #include <WiFi.h>
-
+#include <HardwareSerial.h>
 #define DEBUG false
 
 // Definición de la red WiFi
@@ -25,12 +25,15 @@ Adafruit_BME280 bme2; // I2C
 
 bool timer_flag = true;
 
+HardwareSerial Serial0(0);
+
 void ARDUINO_ISR_ATTR onTimer() {
   timer_flag = true;
 }
 
 void setup() {
-  Serial.begin(38400);
+  Serial.begin(9600);
+  Serial0.begin(9600, SERIAL_8N1, -1, -1);
   // Inicializar sensores
   if ( bme1.begin(0x76) & bme2.begin(0x77)) {
     if (DEBUG) Serial.println("BME280 sensors in address 0x76 and 0x77 conected");
@@ -60,31 +63,32 @@ void setup() {
 void loop() {
   // Ejecuta la función de impresión si la bandera está activa
   if (timer_flag) {
-    printValues();    
+    printValues(&Serial);
+    printValues(&Serial0);
     timer_flag = false; // Resetea la bandera
   }
 }
 
-void printValues() {
+void printValues(Print* elserial) {
   // Imprime los datos del Sensor 1
   String now = rtc.getTime("%Y-%m-%d %H:%M:%S,");
-  Serial.print(now);
-  Serial.print("1,"); // Identificador del sensor
-  Serial.print(bme1.readTemperature()); // Temperatura
-  Serial.print(","); 
-  Serial.print(bme1.readPressure() / 100.0F); // Presión en hPa
-  Serial.print(",");
-  Serial.print(bme1.readHumidity()); // Humedad
-  Serial.println(); // Finaliza la línea
+  elserial->print(now);
+  elserial->print("1,"); // Identificador del sensor
+  elserial->print(bme1.readTemperature()); // Temperatura
+  elserial->print(","); 
+  elserial->print(bme1.readPressure() / 100.0F); // Presión en hPa
+  elserial->print(",");
+  elserial->print(bme1.readHumidity()); // Humedad
+  elserial->println(); // Finaliza la línea
   // Imprime los datos del Sensor 2
-  Serial.print(now);
-  Serial.print("2,"); // Identificador del sensor
-  Serial.print(bme2.readTemperature()); // Temperatura
-  Serial.print(","); 
-  Serial.print(bme2.readPressure() / 100.0F); // Presión en hPa
-  Serial.print(",");
-  Serial.print(bme2.readHumidity()); // Humedad
-  Serial.println(); // Finaliza la línea
+  elserial->print(now);
+  elserial->print("2,"); // Identificador del sensor
+  elserial->print(bme2.readTemperature()); // Temperatura
+  elserial->print(","); 
+  elserial->print(bme2.readPressure() / 100.0F); // Presión en hPa
+  elserial->print(",");
+  elserial->print(bme2.readHumidity()); // Humedad
+  elserial->println(); // Finaliza la línea
 }
 
 void syncTime(bool debug) {
