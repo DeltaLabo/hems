@@ -16,7 +16,7 @@ def csv_write(filename):
         write = csv.writer(file)
         write.writerows(lista)
 # Inicializa el serial
-hems = serial.Serial('COM8',
+hems = serial.Serial('COM6',
                      baudrate=9600,
                      bytesize=8,
                      parity='N',

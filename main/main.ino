@@ -25,7 +25,7 @@ Adafruit_BME280 bme2; // I2C
 
 bool timer_flag = true;
 
-HardwareSerial Serial0(0);
+HardwareSerial MySerial(0);
 
 void ARDUINO_ISR_ATTR onTimer() {
   timer_flag = true;
@@ -33,7 +33,7 @@ void ARDUINO_ISR_ATTR onTimer() {
 
 void setup() {
   Serial.begin(9600);
-  Serial0.begin(9600, SERIAL_8N1, -1, -1);
+  MySerial.begin(9600, SERIAL_8N1, -1, -1);
   // Inicializar sensores
   if ( bme1.begin(0x76) & bme2.begin(0x77)) {
     if (DEBUG) Serial.println("BME280 sensors in address 0x76 and 0x77 conected");
@@ -64,7 +64,7 @@ void loop() {
   // Ejecuta la función de impresión si la bandera está activa
   if (timer_flag) {
     printValues(&Serial);
-    printValues(&Serial0);
+    printValues(&MySerial);
     timer_flag = false; // Resetea la bandera
   }
 }

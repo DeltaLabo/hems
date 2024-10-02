@@ -8,7 +8,7 @@ today = datetime.today().strftime('%Y-%m-%d-%H-%M')
 
 in_filename = 'text_file.txt'
 
-out_filename = f"questtemp_{today}.csv"
+out_filename = f"quest_{today}.csv"
 
 source = input("(a)rchivo o (s)erial?")
 
@@ -42,7 +42,7 @@ while(EOFf == False):
     if counter > 0:
         counter -= 1
 
-    if line[:-1].endswith('Pagina 1'):
+    if line[:end_of_line].endswith('Pagina 1'):
         counter = 32
 
     if line.endswith('\x1a'):
