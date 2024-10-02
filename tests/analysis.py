@@ -1,8 +1,8 @@
 import pandas as pd
 from matplotlib import pyplot as plt
 
-hems = pd.read_csv('tests/hems_1.0.csv',names=['timestamp','sens','temp','pres','humi'],parse_dates=['timestamp'], infer_datetime_format=True)
-quest = pd.read_csv('tests/quest_1.0.csv',parse_dates=['timestamp'], infer_datetime_format=True)
+hems = pd.read_csv('tests/hems_2.0.csv',names=['timestamp','sens','temp','pres','humi'],parse_dates=['timestamp'], infer_datetime_format=True)
+quest = pd.read_csv('tests/quest_2.0.csv',parse_dates=['timestamp'], infer_datetime_format=True)
 
 print(hems.head())
 
@@ -21,7 +21,15 @@ quest = quest[quest['timestamp'].isin(hems1['timestamp'])]\
 plt.figure()
 plt.plot(hems1.timestamp,hems1.temp,label='hems1')
 plt.plot(hems2.timestamp,hems2.temp,label='hems2')
-plt.xticks(rotation=90)
+plt.xticks(rotation=45)
 plt.plot(quest.timestamp,quest.globo,label='questglobo')
+plt.legend()
+plt.show()
+
+plt.figure()
+plt.plot(hems1.timestamp,hems1.humi,label='hems1')
+plt.plot(hems2.timestamp,hems2.humi,label='hems2')
+plt.xticks(rotation=45)
+plt.plot(quest.timestamp,quest.hr,label='quest')
 plt.legend()
 plt.show()
