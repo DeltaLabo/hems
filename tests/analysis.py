@@ -20,16 +20,16 @@ quest = quest[quest['timestamp'].isin(hems1['timestamp'])]\
 
 plt.figure()
 hems1['temp'] = 1.04*hems1['temp'] - 1
-plt.plot(hems1.timestamp,hems1.temp,label='hems1')
-plt.plot(hems2.timestamp,hems2.temp,label='hems2')
+plt.plot(hems1.timestamp,hems1.temp,label='hems/globo')
+plt.plot(hems2.timestamp,hems2.temp,label='hems/bulbo')
 plt.xticks(rotation=45)
 plt.plot(quest.timestamp,quest.globo,label='questglobo')
 plt.legend()
 plt.show()
 
 plt.figure()
-plt.plot(hems1.timestamp,hems1.humi,label='hems1')
-plt.plot(hems2.timestamp,hems2.humi,label='hems2')
+plt.plot(hems1.timestamp,hems1.humi,label='hems/globo')
+plt.plot(hems2.timestamp,hems2.humi,label='hems/bulbo')
 plt.xticks(rotation=45)
 plt.plot(quest.timestamp,quest.hr,label='quest')
 plt.legend()

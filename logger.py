@@ -44,8 +44,9 @@ lista = []
 def in_figure() -> None:
 
     plt.subplot(3,1,1)
-    plt.plot(time1[-100:], temp1[-100:])
-    plt.plot(time2[-100:], temp2[-100:])
+    plt.plot(time1[-100:], temp1[-100:],label='globo')
+    plt.plot(time2[-100:], temp2[-100:],label='bulbo')
+    plt.legend()
     plt.title("SALES")
     plt.subplot(3,1,2)
     plt.plot(time1[-100:], humi1[-100:])
@@ -53,6 +54,7 @@ def in_figure() -> None:
     plt.subplot(3,1,3)
     plt.plot(time1[-100:], pres1[-100:])
     plt.plot(time2[-100:], pres2[-100:])
+    
 
 
 while True:
