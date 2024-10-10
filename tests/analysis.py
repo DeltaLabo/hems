@@ -3,8 +3,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-hems = pd.read_csv('tests/hems_2.0.csv',names=['timestamp','sens','temp','pres','humi'],parse_dates=['timestamp'], infer_datetime_format=True)
-quest = pd.read_csv('tests/quest_2.0.csv',parse_dates=['timestamp'], infer_datetime_format=True)
+hems = pd.read_csv('tests/hems_5.0.csv',names=['timestamp','sens','temp','pres','humi'],parse_dates=['timestamp'], infer_datetime_format=True)
+quest = pd.read_csv('tests/quest_5.0.csv',parse_dates=['timestamp'], infer_datetime_format=True)
 
 print(hems.head())
 
@@ -53,16 +53,22 @@ for comparison, rmse in rmse_results.items():
 plt.figure()
 hems1['temp'] = 1.04*hems1['temp'] - 1
 plt.plot(hems1.timestamp,hems1.temp,label='hems/globo')
-plt.plot(hems2.timestamp,hems2.temp,label='hems/bulbo')
+#plt.plot(hems2.timestamp,hems2.temp,label='hems/bulbo')
 plt.xticks(rotation=45)
 plt.plot(quest.timestamp,quest.globo,label='questglobo')
+plt.title('Prueba al vacío: Prototipo vs Questtemp')  
+plt.xlabel('Tiempo') 
+plt.ylabel('Temperatura de globo (°C)') 
 plt.legend()
 plt.show()
 
 plt.figure()
-plt.plot(hems1.timestamp,hems1.humi,label='hems/globo')
+#plt.plot(hems1.timestamp,hems1.humi,label='hems/globo')
 plt.plot(hems2.timestamp,hems2.humi,label='hems/bulbo')
 plt.xticks(rotation=45)
 plt.plot(quest.timestamp,quest.hr,label='quest')
+plt.title('Comparación de temperatura de bulbo')  
+plt.xlabel('Tiempo')  
+plt.ylabel('Humedad relativa (%)')  
 plt.legend()
 plt.show()
