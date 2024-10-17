@@ -25,30 +25,31 @@ print(quest.columns)
 def calculate_rmse(actual, predicted):
     return np.sqrt(mean_squared_error(actual, predicted))
 
+# Calcular el RMSE como porcentaje
+def calculate_rmse_percentage(actual, predicted):
+    rmse = calculate_rmse(actual, predicted)
+    return (rmse / np.mean(actual)) * 100  # RMSE en porcentaje
+
 columns_mapping = {
     'temp': 'globo',   
     'humi': 'hr'       
 }
-
-
 rmse_results = {}
 for hems_column, quest_column in columns_mapping.items():
     real_values = quest[quest_column]  
     predicted_values = hems1[hems_column]  
-    rmse = calculate_rmse(real_values, predicted_values)
-    rmse_results[f'hems1 vs quest ({hems_column})'] = rmse
-
+    rmse_percentage = calculate_rmse_percentage(real_values, predicted_values)
+    rmse_results[f'hems1 vs quest ({hems_column})'] = rmse_percentage
 
 for hems_column, quest_column in columns_mapping.items():
     real_values = quest[quest_column]  
     predicted_values = hems2[hems_column]  
-    rmse = calculate_rmse(real_values, predicted_values)
-    rmse_results[f'hems2 vs quest ({hems_column})'] = rmse
+    rmse_percentage = calculate_rmse_percentage(real_values, predicted_values)
+    rmse_results[f'hems2 vs quest ({hems_column})'] = rmse_percentage
 
-
-
-for comparison, rmse in rmse_results.items():
-    print(f'RMSE for {comparison}: {rmse}')
+# Mostrar los resultados en porcentaje
+for comparison, rmse_percentage in rmse_results.items():
+    print(f'RMSE Percentage for {comparison}: {rmse_percentage:.2f}%')
 
 plt.figure()
 hems1['temp'] = 1.04*hems1['temp'] - 1
