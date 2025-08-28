@@ -1,5 +1,4 @@
 import streamlit as st
-import math
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,18 +7,14 @@ import matplotlib.pyplot as plt
 from Funciones import indice_de_sudoracion
 from Funciones import tgbh
 from Funciones import indice_sobrecarga_calorica
-
-
+from Funciones import format_time
+from Funciones import sanitize_file
 
 #Importar csv con datos de metabolismo, cavs y clo
 lista_cavs= pd.read_csv("CAVS.csv")
 lista_metabolismo= pd.read_csv("Metabolismo.csv")
 lista_clo=pd.read_csv("Aislamiento.csv")
 
-#Importar csv
-lista_cavs= pd.read_csv("CAVS.csv")
-lista_metabolismo= pd.read_csv("Metabolismo.csv")
-lista_clo=pd.read_csv("Aislamiento.csv")
 
 #Inicio programa Streamlit
 st.title("Sistema de Monitoreo de Estrés Térmico")
@@ -45,35 +40,44 @@ presion_aire= 101.3 #ajustar default
 humedad_relativa= 50.00 #ajustar default
 #Carga del csv
 try:
-    archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
+    archivo = st.file_uploader("Sube tu archivo CSV o Excel", type=["csv", "xlsx"])
 except: 
     st.warning("No se pudo cargar el archivo. Asegúrate de que el archivo sea un CSV y contenga las columnas requeridas.")
     archivo = None
 
-#Valida si se cargó un archivo o no. En caso de no cargar un archivo se solicitará el ingreso manual de los datos
+
 if archivo is not None:
-    datos_ambientales= pd.read_csv(archivo) #Lectura del archivo
+    #Sanitizar el archivo
+    try:
+        # Procesar solo si hay un archivo
+        safe_df = sanitize_file(archivo)
+        
+    except Exception as e:
+        st.error(f"Error al procesar el archivo: {str(e)}")
+        st.warning("Asegúrate de que el archivo sea un CSV/Excel válido y contenga las columnas requeridas.")
+
     # Mostrar los datos
     st.subheader("Vista previa del archivo:")
-    st.dataframe(datos_ambientales)
+    st.dataframe(safe_df)
     #Es necesario estandarizar el nombre de los encabezados de columna o bien el orden en que se encuentran, de momento se trabajara con nombres especificos
+    #Validar si falta alguna columna
     try: 
-        temp_aire= datos_ambientales["Temperatura seca"].mean()
+        temp_aire= safe_df["Temperatura seca"].mean()
     except:
         st.warning("No se encontró la columna 'Temperatura seca' en el archivo. Asegúrate de que el archivo contenga esta columna. De lo contrario, se asignará un valor por default de 32 °C que podrá modificar")
         temp_aire= st.number_input("#### Temperatura seca (°C)", min_value=15.00, max_value=44.00, value=32.00) #ajustar max y default
     try:
-        temp_globo= datos_ambientales["Temperatura de globo"].mean()
+        temp_globo= safe_df["Temperatura de globo"].mean()
     except:
         st.warning("No se encontró la columna 'Temperatura de globo' en el archivo. Asegúrate de que el archivo contenga esta columna. De lo contrario, se asignará un valor por default de 36 °C que podrá modificar")
         temp_globo= st.number_input("#### Temperatura de globo (°C)", min_value=15.00, max_value=45.00, value=36.00) #ajustar max y default
     try:
-        temp_bulbo= datos_ambientales["Temperatura de bulbo humedo"].mean()
+        temp_bulbo= safe_df["Temperatura de bulbo humedo"].mean()
     except:
         st.warning("No se encontró la columna 'Temperatura de bulbo humedo' en el archivo. Asegúrate de que el archivo contenga esta columna. De lo contrario, se asignará un valor por default de 28 °C que podrá modificar")
         temp_bulbo= st.number_input("#### Temperatura de bulbo humedo (°C)", min_value=15.00, max_value=45.00, value=28.00) #ajustar max y default
     try:
-        velocidad_aire= datos_ambientales["Velocidad del aire"].mean()
+        velocidad_aire= safe_df["Velocidad del aire"].mean()
     except:
         st.warning("No se encontró la columna 'Velocidad del aire' en el archivo. Asegúrate de que el archivo contenga esta columna. De lo contrario, se asignará un valor por default de 0.016 m/s que podrá modificar")
         velocidad_aire= st.number_input("#### Velocidad del aire (m/s)", min_value=0.000, max_value=3.00, value=0.016) #ajustar max y default
@@ -171,15 +175,16 @@ if estado == "Estrés Térmico":
     st.write("Ya que el trabajador se encuentra en estrés térmico, se recomienda utilizar el método de evaluación SWreq e ISC")
     #Selección de la vestimenta para el factor clo
     st.write("A continuación se le presentarán una serie de conjuntos de ropa para determinar el valor de clo, esto es necesario para calcular el ISC y SWreq")
-    st.write("Tambien es necesario indicar la altura y peso promedio de los trabajadores")   
-    col5,col6=st.columns(2)
     conjuntos_clo= lista_clo.iloc[:,0].tolist()
-    with col5:
-        seleccion_clo= st.selectbox("Seleccione el conjunto que utilizan los trabajadores:",conjuntos_clo)
-    with col6:
-        altura=st.number_input("Altura promedio de los trabajadores (cm)", min_value=0.00, max_value=300.00, value=170.00)
-        peso=st.number_input("Peso promedio de los trabajadores (kg)", min_value=50.00, max_value=150.00, value=70.00)
+    seleccion_clo= st.selectbox("Seleccione el conjunto que utilizan los trabajadores:",conjuntos_clo)
     iclo=lista_clo[lista_clo["Ropa de trabajo"]==seleccion_clo]["m²·K/W"].iloc[0]
+    st.write("Tambien es necesario indicar la altura y peso promedio de los trabajadores") 
+    col5,col6=st.columns(2)  
+    with col5:
+         altura=st.number_input("Altura promedio de los trabajadores (cm)", min_value=0.00, max_value=300.00, value=170.00)
+    with col6:
+        peso=st.number_input("Peso promedio de los trabajadores (kg)", min_value=50.00, max_value=150.00, value=70.00)
+    
     #SWreq
     # Crear un botón para calcular y mostrar los resultados 
     mostrar_swreq=st.button("Calcular Índice de sudoración requerida")
@@ -187,28 +192,14 @@ if estado == "Estrés Térmico":
     
         # Llamar a la función indice de suodración
         dle_alarma_q, dle_peligro_q, dle_alarma_d, dle_peligro_d = indice_de_sudoracion(temp_aire, temp_globo, temp_bulbo, iclo, carga_metabolica, velocidad_aire, postura, aclimatacion,conveccion)
-       #Pasar DLE a horas y min
-       
-        #DLE Alarma Q
-        horas_dle_alarma_q=int(dle_alarma_q//60)
-        minutos_dle_alarma_q=int(dle_alarma_q%60)
-        #DLE Peligro Q
-        horas_dle_peligro_q=int(dle_peligro_q//60)
-        minutos_dle_peligro_q=int(dle_peligro_q%60)
-        
-        #DLE Alarma D
-        horas_dle_alarma_d=int(dle_alarma_d//60)
-        minutos_dle_alarma_d=int(dle_alarma_d%60)
-        #DLE Peligro D
-        horas_dle_peligro_d=int(dle_peligro_d//60)
-        minutos_dle_peligro_d=int(dle_peligro_d%60)
         
          #Mostrar los resultados
         st.write("### Resultados SWreq")
-        st.write(f"⏱️ DLE Alarma Q: {horas_dle_alarma_q}h {minutos_dle_alarma_q}min")
-        st.write(f"⏱️ DLE Peligro Q: {horas_dle_peligro_q}h {minutos_dle_peligro_q}min")
-        st.write(f"⏱️ DLE Alarma D: {horas_dle_alarma_d}h {minutos_dle_alarma_d}min")
-        st.write(f"⏱️ DLE Peligro D: {horas_dle_peligro_d}h {minutos_dle_peligro_d}min")
+        st.write("### Resultados SWreq")
+        st.write(f"⏱️ Tiempo limite de alarma por acumulación de calor: {format_time(dle_alarma_q)}")
+        st.write(f"⏱️ Tiempo limite de peligro por acumulación de calor: {format_time(dle_peligro_q)}")
+        st.write(f"⏱️ Tiempo limite de alarma por deshidratación: {format_time(dle_alarma_d)}")
+        st.write(f"⏱️ Tiempo limite de peligro por deshidratación: {format_time(dle_peligro_d)}")
         
         
     #ISC
@@ -216,12 +207,15 @@ if estado == "Estrés Térmico":
     if mostrar_isc:
         st.write("### Resultados ISC")
         #Llamar a la función indice de sudoracion
-        isc,clasificacion_isc, tiempo_exp_per=indice_sobrecarga_calorica(carga_metabolica,velocidad_aire,temp_globo,temp_aire, temp_bulbo,iclo,altura,peso)  
+        isc,clasificacion_isc, tiempo_exp_per,tiempo_de_recuperacion,emax,ereq=indice_sobrecarga_calorica(carga_metabolica,velocidad_aire,temp_globo,temp_aire, temp_bulbo,iclo,altura,peso)  
         st.write(f"El indice de sobrecarga calórica es: {round(isc,2)} %")
         st.write(f"Clasificación de la sobrecarga calórica:  {clasificacion_isc}")
-        horas_exp_isc=int(tiempo_exp_per//60)
-        minutos_exp_isc=int(tiempo_exp_per%60)
-        st.write(f"⏱️ Tiempo de exposición permitido: {horas_exp_isc}h {minutos_exp_isc}min")
+        #Pasar tiempo de exposición permitido a horas y min y mostrar los resultados
+        st.write(f"⏱️ Tiempo de exposición permitido: {format_time(tiempo_exp_per)}")
+        #Pasar tiempo de recuperación a horas y min y mostrar los resultados
+        st.write(f"⏱️ Tiempo de recuperación: {format_time(tiempo_de_recuperacion)}")
+        st.write(f"Emax: {round(emax,2)}")
+        st.write(f"Ereq: {round(ereq,2)}")
         
 if estado== "Discomfort":
     if radiacion_solar== "No":
@@ -239,6 +233,13 @@ if estado== "Discomfort":
         conjuntos_clo= lista_clo.iloc[:,0].tolist()
         seleccion_clo= st.selectbox("Seleccione el conjunto que utilizan los trabajadores:",conjuntos_clo)
         iclo=lista_clo[lista_clo["Ropa de trabajo"]==seleccion_clo]["m²·K/W"].iloc[0]
+        
+        st.write("Tambien es necesario indicar la altura y peso promedio de los trabajadores") 
+        col5,col6=st.columns(2)  
+        with col5:
+            altura=st.number_input("Altura promedio de los trabajadores (cm)", min_value=0.00, max_value=300.00, value=170.00)
+        with col6:
+            peso=st.number_input("Peso promedio de los trabajadores (kg)", min_value=50.00, max_value=150.00, value=70.00)
         #SWreq
         mostrar_swreq=st.button("Calcular Índice de sudoración requerida")
         if mostrar_swreq:
@@ -246,35 +247,26 @@ if estado== "Discomfort":
             dle_alarma_q, dle_peligro_q, dle_alarma_d, dle_peligro_d = indice_de_sudoracion(temp_aire, temp_globo, temp_bulbo, iclo, carga_metabolica, velocidad_aire, postura, aclimatacion,conveccion)
         #Pasar DLE a horas y min
         
-            #DLE Alarma Q
-            horas_dle_alarma_q=int(dle_alarma_q//60)
-            minutos_dle_alarma_q=int(dle_alarma_q%60)
-            #DLE Peligro Q
-            horas_dle_peligro_q=int(dle_peligro_q//60)
-            minutos_dle_peligro_q=int(dle_peligro_q%60)
-            
-            #DLE Alarma D
-            horas_dle_alarma_d=int(dle_alarma_d//60)
-            minutos_dle_alarma_d=int(dle_alarma_d%60)
-            #DLE Peligro D
-            horas_dle_peligro_d=int(dle_peligro_d//60)
-            minutos_dle_peligro_d=int(dle_peligro_d%60)
             
             #Mostrar los resultados
             st.write("### Resultados SWreq")
-            st.write(f"⏱️ DLE Alarma Q: {horas_dle_alarma_q}h {minutos_dle_alarma_q}min")
-            st.write(f"⏱️ DLE Peligro Q: {horas_dle_peligro_q}h {minutos_dle_peligro_q}min")
-            st.write(f"⏱️ DLE Alarma D: {horas_dle_alarma_d}h {minutos_dle_alarma_d}min")
-            st.write(f"⏱️ DLE Peligro D: {horas_dle_peligro_d}h {minutos_dle_peligro_d}min")
+            st.write(f"⏱️ Tiempo limite de alarma por acumulación de calor: {format_time(dle_alarma_q)}")
+            st.write(f"⏱️ Tiempo limite de peligro por acumulación de calor: {format_time(dle_peligro_q)}")
+            st.write(f"⏱️ Tiempo limite de alarma por deshidratación: {format_time(dle_alarma_d)}")
+            st.write(f"⏱️ Tiempo limite de peligro por deshidratación: {format_time(dle_peligro_d)}")
+          
             
         #ISC
         mostrar_isc=st.button("Calcular Índice de Sobrecarga de Calor")
         if mostrar_isc:
             st.write("### Resultados ISC")
             #Llamar a la función indice de sudoracion
-            isc,clasificacion_isc, tiempo_exp_per=indice_sobrecarga_calorica(carga_metabolica,velocidad_aire,temp_globo,temp_aire, temp_bulbo,iclo)  
+            isc,clasificacion_isc, tiempo_exp_per=indice_sobrecarga_calorica(carga_metabolica,velocidad_aire,temp_globo,temp_aire, temp_bulbo,iclo,altura,peso)  
             st.write(f"El indice de sobrecarga calórica es: {round(isc,2)} %")
             st.write(f"Clasificación de la sobrecarga calórica:  {clasificacion_isc}")
-            horas_exp_isc=int(tiempo_exp_per//60)
-            minutos_exp_isc=int(tiempo_exp_per%60)
-            st.write(f"⏱️ Tiempo de exposición permitido: {horas_exp_isc}h {minutos_exp_isc}min")
+           #Pasar tiempo de exposición permitido a horas y min y mostrar los resultados
+            st.write(f"⏱️ Tiempo de exposición permitido: {format_time(tiempo_exp_per)}")
+            #Pasar tiempo de recuperación a horas y min y mostrar los resultados
+            st.write(f"⏱️ Tiempo de recuperación: {format_time(tiempo_de_recuperacion)}")
+            st.write(f"Emax: {round(emax,2)}")
+            st.write(f"Ereq: {round(ereq,2)}")

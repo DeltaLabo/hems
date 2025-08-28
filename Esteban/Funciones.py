@@ -25,7 +25,7 @@ def indice_de_sudoracion(temp_aire, temp_globo, temp_bulbo, iclo, carga_metaboli
     if velocidad_aire > 0.15:
         temp_radiante_media = (((temp_globo + 273)**4) + (2.5 * (10**8)) * (velocidad_aire**0.6) * (temp_globo - temp_aire))**0.25 - 273
     else:
-        temp_radiante_media = (((temp_globo + 273)**4) + (2.5 * (10**8)) * ((temp_globo - temp_aire)**0.25) * (temp_globo - temp_aire))**0.25 - 273
+        temp_radiante_media = (((temp_globo + 273)**4) + (0.42 * (10**8)) * ((temp_globo - temp_aire)**0.25) * (temp_globo - temp_aire))**0.25 - 273
     
     presion_saturacion_bulbo = math.exp(16.653 - (4030.18 / (temp_bulbo + 235)))  # (kPa)
     presion_parcial_ambiente = presion_saturacion_bulbo - 0.0667 * (temp_aire - temp_bulbo)  # (kPa)
@@ -136,16 +136,15 @@ def tgbh(radiacion_solar,temp_aire,temp_globo,temp_bulbo,cavs,carga_metabolica,a
 
 """Función para Índice de Sobrecarga Calorica (ISC)"""
 
-def indice_sobrecarga_calorica(carga_metabolica,velocidad_aire, temp_globo, temp_aire,temp_bulbo,iclo):
+def indice_sobrecarga_calorica(carga_metabolica,velocidad_aire, temp_globo, temp_aire,temp_bulbo,iclo,altura,peso):
   
+    carga_metabolica=carga_metabolica/1.7
     # Definir los valores de K según la vestimenta
     if iclo != 0:
         K_1, K_2, K_3 = 7, 4.4, 4.6
     elif iclo == 0:
         K_1, K_2, K_3 = 11.7, 7.3, 7.6
-        exit()
-
-    # Solicitar otros datos al usuario
+        
     
     if velocidad_aire > 0.15:
             temp_radiante_media = ((((temp_globo + 273)**4) + (2.5 * (10**8)) * (velocidad_aire**0.6) * (temp_globo - temp_aire))**0.25) - 273
@@ -157,11 +156,11 @@ def indice_sobrecarga_calorica(carga_metabolica,velocidad_aire, temp_globo, temp
 
     calor_rad = (K_2 * (temp_radiante_media - 35))
     calor_conv = (K_3 * (velocidad_aire ** 0.6) * (temp_aire - 35))
-    Evaporacion_max = K_1 * (velocidad_aire** 0.6) * (56 - presion_parcial_ambiente)  
-    Evaporacion_req = carga_metabolica + calor_rad + calor_conv  #PREGUNTAR CUANDO SE SUMAN Y CUANDO SE RESTAN
+    evaporacion_max = K_1 * (velocidad_aire** 0.6) * (56 - presion_parcial_ambiente)  
+    evaporacion_req = carga_metabolica + calor_rad + calor_conv  #PREGUNTAR CUANDO SE SUMAN Y CUANDO SE RESTAN
 
     # Cálculo del Índice de Sobrecarga Calórica (ISC)
-    indice_sobrecarga_calorica = (Evaporacion_req /Evaporacion_max) * 100
+    indice_sobrecarga_calorica = (evaporacion_req /evaporacion_max) * 100
 
     # Clasificación de la sobrecarga calórica
     clasificacion_isc=0
@@ -175,8 +174,37 @@ def indice_sobrecarga_calorica(carga_metabolica,velocidad_aire, temp_globo, temp
         clasificacion_isc=("Sobrecarga calórica máxima permisible")
     elif indice_sobrecarga_calorica > 100:
         clasificacion_isc=("Condiciones críticas por sobrecarga calórica")
-    tiempo_exp_per=2440/(Evaporacion_req-Evaporacion_max)
+        
+    if evaporacion_req <= evaporacion_max:
+        tiempo_exp_per = float('inf')  # Infinito si no hay sobrecarga calórica
+    else:
+        tiempo_exp_per=2440/(evaporacion_req-evaporacion_max)
+    
+    #Tiempo de recuperación
+    superficie_corporal=(peso**0.425)*(altura**0.725)*0.007184
+    tiempo_de_recuperacion= (58+peso*1)/((evaporacion_max-evaporacion_req)*superficie_corporal) #minutos
 
-    return (indice_sobrecarga_calorica, clasificacion_isc, tiempo_exp_per )
+    return (indice_sobrecarga_calorica, clasificacion_isc, tiempo_exp_per, tiempo_de_recuperacion,evaporacion_max,evaporacion_req)
 
+"""Función para calcular el tiempo en horas y minutos"""
 #Función para mostrar el tiempo en formato horas y minutos
+def format_time(minutes):
+    if minutes == float('inf'):
+        return "Sin límite (no hay estrés térmico)"
+    h = int(minutes // 60)
+    m = int(minutes % 60)
+    return f"{h}h {m}min"
+
+#Limpiar el pd dataframe
+def sanitize_file(uploaded_file):
+    # Determinar el tipo de archivo y cargarlo
+    if uploaded_file.name.endswith('.csv'):
+        df = pd.read_csv(uploaded_file)
+    elif uploaded_file.name.endswith('.xlsx'):
+        df = pd.read_excel(uploaded_file)
+    else:
+        raise ValueError("Formato de archivo no soportado")
+    
+    # Sanitizar el DataFrame
+    sanitized_df = df.applymap(lambda x: f"'{x}" if isinstance(x, str) and x.startswith(('=', '@', '+', '-')) else x)
+    return sanitized_df
