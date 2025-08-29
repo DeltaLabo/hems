@@ -19,6 +19,8 @@ Heat exposure monitoring and alert system HEMS
 
 * [Felipe Montero](mailto:femontero@estudiantec.cr)
 
+* [Carlos Navarro](mailto:canavarro@estudiantec.cr)
+
 * [Nicole Prado](mailto:nicoleprado@estudiantec.cr)
 
 * [Bryan Suazo](mailto:bsuazo@estudiantec.cr)
@@ -30,6 +32,7 @@ Heat exposure monitoring and alert system HEMS
 
 * This repository was created to develop an heat exposure measurement system, to measure heat indexes like Wet Bulb Globe Temperature. These information will be used to detect when a worker is exposed to extreme heat conditions, that can affect their health and development in their work.
 
+This project is in progress.
 
 ### Microcontroller info (In progress)
 
