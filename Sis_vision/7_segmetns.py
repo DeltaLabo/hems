@@ -9,7 +9,17 @@ import pytesseract
 
 # -----------------------------------------------------------
 
-CAM_INDEX = 0  # 0 = default webcam (/dev/video0 in Linux)
+GST_PIPELINE = (
+    "libcamerascr ! "
+    "video/x-raw,format=RGB,width=1200,height=720,framerate=30/1 !"
+    "videoconvert !"
+    "video/x-raw,format=BGR ! "
+    "appsink drop=1 max=buffers=1 sync=false"
+    )
+    
+
+
+CAM_INDEX = 0   # 0 = default webcam (/dev/video0 in Linux)
 
 # ROI (Region of Interest) where the digits are located
 x, y = 200, 200
@@ -17,15 +27,19 @@ w, h = 200, 100
 
 # Tesseract config optimized for 7-segment digits
 TESS_CFG = r'--oem 3 --psm 7 -c tessedit_char_whitelist=0123456789'
+INVERT_THRESHOLD = False
 
 # -----------------------------------------------------------
 # FUNCTIONS
 # -----------------------------------------------------------
-def preprocess_for_7seg(roi_bgr):
+def preprocess_for_7seg(roi_bgr, invert=False):
     """Preprocess ROI for OCR on 7-segment displays."""
     gray = cv2.cvtColor(roi_bgr, cv2.COLOR_BGR2GRAY)
     gray = cv2.GaussianBlur(gray, (3, 3), 0)
     _, bw = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2,2))
+    bw = cv2.morphologyEx(bw, cv2.MORPH_OPEN, kernel, iterations=1)
     return bw
 
 def ocr_digits(img):
@@ -37,7 +51,7 @@ def ocr_digits(img):
 # -----------------------------------------------------------
 # CAPTURE
 # -----------------------------------------------------------
-cap = cv2.VideoCapture(CAM_INDEX, cv2.CAP_ANY)
+cap = cv2.VideoCapture(GST_PIPELINE, cv2.CAP_GSTREAMER)
 if not cap.isOpened():
     raise RuntimeError("Could not open camera")
 
