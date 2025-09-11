@@ -20,7 +20,7 @@ st.write("## Identificador de la tarea")
 st.write("Por favor ingrese un identificador único para la tarea que se está evaluando, esto es necesario para el correcto funcionamiento del dashboard")
 st.write("Coloque el nombre de su empresa seguido de un guión y una breve descripción de la tarea, por ejemplo: EmpresaX-TareaY")
 identificador= st.text_input("Identificador de la tarea")
-
+timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
 #Definición de variables necesarias
 st.write("## Datos de entrada")
@@ -38,6 +38,7 @@ with col4:
     
 st.write("### Aislamiento térmico de la ropa")
 
+st.write("En esta sección se solicitará que ingrese información sobre la vestimenta de los trabajadores, se solicita dos veces para determinar el valor de CAVS y el factor clo")
 #Determinación de Cavs
 st.write("Acontinuación se le presentarán una serie de conjuntos para determinar el valor de CAVS, esto es necesario para calcular el TGBH")
 conjuntos_cavs= lista_cavs.iloc[:,0].tolist()
@@ -47,6 +48,12 @@ if capucha == "Si":
     cavs +=1
 st.write ("El valor de Cavs corresponde a:", cavs)
 
+#Selección de la vestimenta para el factor clo
+st.write("A continuación se le presentarán una serie de conjuntos de ropa para determinar el valor de clo, esto es necesario para calcular el ISC y SWreq")
+conjuntos_clo= lista_clo.iloc[:,0].tolist()
+seleccion_clo= st.selectbox("Seleccione el conjunto que utilizan los trabajadores:",conjuntos_clo)
+iclo=lista_clo[lista_clo["Ropa de trabajo"]==seleccion_clo]["m²·K/W"].iloc[0]
+    
 #Determinación de la tasa metábolica
 st.write("### Tasa metabólica")
 
@@ -56,6 +63,18 @@ st.dataframe(lista_metabolismo)
 tasas=lista_metabolismo.iloc[:,1].tolist()
 carga_metabolica=st.selectbox("Seleccione la tasa metabolica:",tasas)
 
+#Caracteristicas de los trabajadores
+st.write("### Caracteristicas de los trabajadores")
+st.write("A continuación, es necesario ingresar las características de los trabajadores que realizarán la tarea.")
+col1, col2 = st.columns(2)
+with col1:
+    peso = st.number_input("Peso (kg)", min_value=30.0, max_value=200.0, value=70.0, step=0.1)
+    
+
+with col2:
+    altura = st.number_input("Altura (cm)", min_value=100.0, max_value=250.0, value=170.0, step=0.1)
+
+#Guardar la tarea
 st.title("Guardar la tarea")
 
 st.write("Finalmente, es necesario guardar la tarea para que pueda ser utilizada en el dashboard, porfavor oprima el botón guardar tarea")
@@ -64,15 +83,23 @@ payload = {
     "aclimatación": aclimatacion,
     "convección": conveccion,
     "radiación": radiacion_solar,
-    "cavs": cavs,
-    "carga_metabolica": carga_metabolica,
-    "Fecha": datetime.now().isoformat(timespec="seconds")
+    "cavs": int(cavs),
+    "carga_metabolica": float(carga_metabolica),
+    "peso": float(peso),
+    "altura": float(altura),
+    "iclo": float(iclo),
+    "Fecha": timestamp.isoformat() if isinstance(timestamp, datetime) else str(timestamp)
 }
+#Declarar la ruta para guardar los archivos, reemplazar una vez se establezca el servidor
+ruta_base = Path("C:/Repositorios/hems/Esteban/profiles")
+
+#Nombre del archivo
+nombre_archivo = f"{identificador}.json"
 
 
 if st.button("💾 Guardar JSON"):
     try:
-        destino = Path(ruta_base) / nombre_archivo
+        destino = Path(ruta_base) / identificador
         destino.parent.mkdir(parents=True, exist_ok=True)  # crea la carpeta si no existe
         with destino.open("w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
