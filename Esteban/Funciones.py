@@ -4,6 +4,33 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import numpy as np
 
+"""Función para el cálculo del índice de calor"""
+
+def indice_de_calor(temp_aire, humedad_relativa):
+    if temp_aire < 27 or humedad_relativa < 40:
+        return "No aplica"
+    else:
+        temp_aire= temp_aire * 9/5 + 32  # Convertir a Fahrenheit
+        ih =-42.379 + 2.04901523*temp_aire + 10.14333127*humedad_relativa - .22475541*temp_aire*humedad_relativa - .00683783*temp_aire*temp_aire - .05481717*humedad_relativa*humedad_relativa + .00122874*temp_aire*temp_aire*humedad_relativa + .00085282*temp_aire*humedad_relativa*humedad_relativa - .00000199*temp_aire*temp_aire*humedad_relativa*humedad_relativa
+        
+    if ih <91:
+        nivel="Nivel I"
+        efecto= "Es posible que tenga fatiga con exposiciones prolongadas y actividad física."
+        return (ih, nivel, efecto)
+    if 91<= ih <103:
+        nivel="Nivel II"
+        efecto="Fatiga probable con actividad física prolongada. Continuar con precaución."
+        return (ih, nivel, efecto)
+    if 103<= ih <125:
+        nivel="Nivel III"
+        efecto= "Fatiga con actividad física moderada. Continuar con precaución."
+        return (ih, nivel, efecto)
+    if ih >=125:        
+        nivel="Nivel IV"
+        efecto= "Fatiga con actividad física ligera. Continuar con precaución."
+        return (ih, nivel, efecto)
+
+
 """Función para el cálculo del índice de sobre carga calorica. (SWreq)"""
 
 def indice_de_sudoracion(temp_aire, temp_globo, temp_bulbo, iclo, carga_metabolica, velocidad_aire, postura, aclimatacion, conveccion):
