@@ -6,13 +6,12 @@ import altair as alt
 import math 
 
 # Importar la función desde el archivo funciones.py
-from funciones import indice_de_sudoracion, tgbh, indice_sobrecarga_calorica, format_time, indice_de_calor
+from src.funciones import indice_de_sudoracion, tgbh, indice_sobrecarga_calorica, format_time, indice_de_calor
 
 #Importar csv con datos de metabolismo, cavs y clo
-lista_cavs= pd.read_csv("CAVS.csv")
-lista_metabolismo= pd.read_csv("Metabolismo.csv")
-lista_clo=pd.read_csv("Aislamiento.csv")
-
+lista_cavs = pd.read_csv("data/CAVS.csv")
+lista_metabolismo = pd.read_csv("data/Metabolismo.csv")
+lista_clo = pd.read_csv("data/Aislamiento.csv")
 
 # Configuración inicial de la página
 st.set_page_config(
@@ -26,11 +25,12 @@ st.title("🔥 Sistema HEMS - Evaluación de Estrés Térmico")
 st.markdown("---")
 
 # Mensaje de bienvenida
-st.header("Bienvenido al Sistema HEMS")
+st.header("🌡️ Bienvenido al Sistema HEMS")
 st.write("""
 Complete la información solicitada a continuación para comenzar la evaluación de estrés térmico 
-en el ambiente laboral. Este sistema le permitirá analizar las condiciones térmicas y obtener 
-recomendaciones para proteger la salud de los trabajadores.
+en el ambiente laboral.  
+Deslice hacia abajo para navegar el sistema. 
+Este sistema le permitirá analizar las condiciones térmicas y obtener recomendaciones para proteger la salud de los trabajadores.
 """)
 
 # Información sobre normas con expander
@@ -79,87 +79,125 @@ st.markdown("---")
 st.subheader("Comience completando los datos a continuación 👇")
 
 #Definición de variables necesarias
-st.write("## Datos de entrada")
+st.write("## 📥 Datos de entrada")
 
 #Variables ambientales
 
-st.write( "### Variables ambientales")
-st.write("Por favor cargue en este espacio un archivo CSV con los datos de ambientales. La temperatura debe estar en °C y la velocidad en m/s.")
-st.write("Los archivos CSV (Comma Separated Value) pueden obtenerse al indicarle a excel que guarde un archivo en este formato, asegurandose de que contenga una sola hoja, con los nombres de columna apropiados y numeros con decimales con punto")
-st.write("El archivo debe contener las siguientes columnas nombradas tal y como se indica a continuación:")
-st.write("Temperatura seca, Temperatura de bulbo humedo, Temperatura de globo, Velocidad del aire, Presión atmosférica, Humedad relativa")
+st.write("### 🌍 Variables ambientales")
+st.write("Puede cargar un archivo CSV o ingresar los datos manualmente:")
 
-#Datos default
-temp_aire=  32.00 #ajustar default
-temp_globo= 36.00 #ajustar default
-temp_bulbo= 28.00   #ajustar default
-velocidad_aire= 0.016 #ajustar default
-presion_aire= 101.3 #ajustar default
-humedad_relativa= 50.00 #ajustar default
+# 1. File uploader simple
+archivo = st.file_uploader("Sube tu archivo CSV con datos ambientales", type=["csv"], 
+                          help="El archivo debe contener columnas: 'Temperatura seca', 'Temperatura de globo', etc.")
 
-#Carga del csv
-try:
-    archivo = st.file_uploader("Sube tu archivo CSV", type=["csv"])
-except: 
-    st.warning("No se pudo cargar el archivo. Asegúrate de que el archivo sea un CSV y contenga las columnas requeridas.")
-    archivo = None
+# Valores por defecto
+temp_aire, temp_globo, temp_bulbo = 32.00, 36.00, 28.00
+velocidad_aire, presion_aire, humedad_relativa = 0.016, 101.3, 50.00
 
+# 2. Procesar archivo si existe
+# REEMPLAZAR todo el bloque de procesamiento de archivos con esto:
 
-
-
-    # Mostrar los datos
-    st.subheader("Vista previa del archivo:")
-    st.dataframe(archivo)
-    #Es necesario estandarizar el nombre de los encabezados de columna o bien el orden en que se encuentran, de momento se trabajara con nombres especificos
-    #Validar si falta alguna columna
-    try: 
-        temp_aire= archivo["Temperatura seca"].mean()
-    except:
-        st.warning("No se encontró la columna 'Temperatura seca' en el archivo. Asegúrate de que el archivo contenga esta columna. De lo contrario, se asignará un valor por default de 32 °C que podrá modificar")
-        temp_aire= st.number_input("#### Temperatura seca (°C)", min_value=15.00, max_value=44.00, value=32.00) #ajustar max y default
+# Procesar archivo si existe
+if archivo is not None:
     try:
-        temp_globo= archivo["Temperatura de globo"].mean()
-    except:
-        st.warning("No se encontró la columna 'Temperatura de globo' en el archivo. Asegúrate de que el archivo contenga esta columna. De lo contrario, se asignará un valor por default de 36 °C que podrá modificar")
-        temp_globo= st.number_input("#### Temperatura de globo (°C)", min_value=15.00, max_value=45.00, value=36.00) #ajustar max y default
-    try:
-        temp_bulbo= archivo["Temperatura de bulbo humedo"].mean()
-    except:
-        st.warning("No se encontró la columna 'Temperatura de bulbo humedo' en el archivo. Asegúrate de que el archivo contenga esta columna. De lo contrario, se asignará un valor por default de 28 °C que podrá modificar")
-        temp_bulbo= st.number_input("#### Temperatura de bulbo humedo (°C)", min_value=15.00, max_value=45.00, value=28.00) #ajustar max y default
-    try:
-        velocidad_aire= archivo["Velocidad del aire"].mean()
-    except:
-        st.warning("No se encontró la columna 'Velocidad del aire' en el archivo. Asegúrate de que el archivo contenga esta columna. De lo contrario, se asignará un valor por default de 0.016 m/s que podrá modificar")
-        velocidad_aire= st.number_input("#### Velocidad del aire (m/s)", min_value=0.000, max_value=3.00, value=0.016) #ajustar max y default
-    try:
-        presion_aire= archivo["Presión atmosférica"].mean()
-    except: 
-        st.warning("No se encontró la columna 'Presión atmosférica' en el archivo. Asegúrate de que el archivo contenga esta columna. De lo contrario, se asignará un valor por default de 101.3 kPa que podrá modificar")
-        presion_aire= st.number_input("#### Presión atmosférica (kPa)", min_value=80.00, max_value=120.00, value=101.3) #ajustar max y default
-    try:
-        humedad_relativa= archivo["Humedad relativa"].mean()    
-    except:
-        st.warning("No se encontró la columna 'Humedad relativa' en el archivo. Asegúrate de que el archivo contenga esta columna. De lo contrario, se asignará un valor por default de 50 % que podrá modificar")
-        humedad_relativa= st.number_input("#### Humedad relativa (%)", min_value=10.00, max_value=100.00, value=50.00) #ajustar max y default
-    st.write("Los datos ambientales del aire han sido cargados correctamente, porfavor verifique que los datos sean correctos")
-    
-else:
-    st.write("Si no cuenta con un archivo CSV, porfavor ingrese los datos manualmente en el siguiente espacio")
-    col1,col2=st.columns(2)
-    with col1:
-        temp_aire = st.number_input("#### Temperatura seca (°C)", min_value=15.00, max_value=44.00,value=32.00)
-        temp_globo = st.number_input("#### Temperatura de globo (°C)", min_value=15.00, max_value=45.00,value=36.00 )
-        humedad_relativa = st.number_input("#### Humedad relativa (%)", min_value=10.00, max_value=100.00, value=50.00)
+        df = pd.read_csv(archivo)
+        st.success("✅ Archivo cargado correctamente")
         
-    with col2:
-        temp_bulbo = st.number_input("#### Temperatura de bulbo humedo (°C)", min_value=15.00, max_value=45.00, value=28.00)
-        velocidad_aire = st.number_input("#### Velocidad del aire (m/s)", min_value=0.000, max_value=3.00, value=0.016)
-        presion_aire = st.number_input("#### Presión atmosférica (kPa)", min_value=80.00, max_value=120.00, value=101.3)
+        # Vista previa
+        st.write("**Vista previa (primeras 5 filas):**")
+        st.dataframe(df.head())
+        
+        # Diccionario para mapear columnas con valores por defecto
+        columnas_map = {
+            "Temperatura seca": ("temp_aire", 32.00),
+            "Temperatura de globo": ("temp_globo", 36.00), 
+            "Temperatura de bulbo humedo": ("temp_bulbo", 28.00),
+            "Velocidad del aire": ("velocidad_aire", 0.016),
+            "Presión atmosférica": ("presion_aire", 101.3),
+            "Humedad relativa": ("humedad_relativa", 50.00)
+        }
+        
+        # Procesar cada columna de forma SEGURA
+        columnas_encontradas = []
+        columnas_faltantes = []
+        columnas_vacias = []
+        
+        for columna_df, (variable, valor_default) in columnas_map.items():
+            if columna_df in df.columns:
+                # Verificar si la columna tiene datos NO vacíos
+                if not df[columna_df].isna().all() and len(df[columna_df].dropna()) > 0:
+                    # Calcular promedio excluyendo NaN
+                    valor_promedio = df[columna_df].mean()
+                    
+                    # Verificar si el resultado es NaN (por si acaso)
+                    if pd.isna(valor_promedio):
+                        globals()[variable] = valor_default
+                        columnas_vacias.append(columna_df)
+                    else:
+                        globals()[variable] = valor_promedio
+                        columnas_encontradas.append(columna_df)
+                else:
+                    # Columna existe pero está vacía
+                    globals()[variable] = valor_default
+                    columnas_vacias.append(columna_df)
+            else:
+                # Columna no existe en el CSV
+                globals()[variable] = valor_default
+                columnas_faltantes.append(columna_df)
+        
+        # MOSTRAR RESUMEN DETALLADO
+        st.write("### 📋 Resumen de Datos Cargados")
+        
+        if columnas_encontradas:
+            st.write("**✅ Datos obtenidos del archivo:**")
+            for columna in columnas_encontradas:
+                variable = columnas_map[columna][0]
+                valor = globals()[variable]
+                st.write(f"• {columna}: **{valor:.2f}**")
+        
+        if columnas_vacias:
+            st.warning("**⚠️ Columnas vacías (usando valores por defecto):**")
+            for columna in columnas_vacias:
+                st.write(f"• {columna}")
+        
+        if columnas_faltantes:
+            st.error("**❌ Columnas faltantes (usando valores por defecto):**")
+            for columna in columnas_faltantes:
+                st.write(f"• {columna}")
+        
+        # Información importante para el usuario
+        if columnas_vacias or columnas_faltantes:
+            st.info("""
+            **💡 Información importante:**
+            - Las columnas **vacías o faltantes** usan valores por defecto
+            - Puede **corregir manualmente** cualquier valor en la siguiente sección
+            """)
+        
+    except Exception as e:
+        st.error(f"❌ Error al procesar el archivo: {str(e)}")
+        st.info("📝 Por favor, ingrese los datos manualmente")
+else:
+    st.info("📝 Modo de entrada manual - ingrese los datos a continuación")
+
+# 3. Inputs manuales (siempre visibles)
+# INPUTS MANUALES (siempre visibles y pre-llenados)
+st.write("### ✏️ Ingreso manual de Datos Ambientales")
+st.write("Verifique o modifique los valores a continuación:")
+
+col1, col2 = st.columns(2)
+with col1:
+    temp_aire = st.number_input("Temperatura seca (°C)", min_value=15.00, max_value=60.00, value=float(temp_aire))
+    temp_globo = st.number_input("Temperatura de globo (°C)", min_value=15.00, max_value=80.00, value=float(temp_globo))
+    humedad_relativa = st.number_input("Humedad relativa (%)", min_value=10.00, max_value=100.00, value=float(humedad_relativa))
+    
+with col2:
+    temp_bulbo = st.number_input("Temperatura de bulbo húmedo (°C)", min_value=15.00, max_value=60.00, value=float(temp_bulbo))
+    velocidad_aire = st.number_input("Velocidad del aire (m/s)", min_value=0.000, max_value=10.00, value=float(velocidad_aire))
+    presion_aire = st.number_input("Presión atmosférica (kPa)", min_value=80.00, max_value=120.00, value=float(presion_aire))
         
         
 #Caracteristicas de la tarea
-st.write("### Caracteristicas de la tarea")
+st.write("### 💼 Caracteristicas de la tarea")
 st.write("Indique los siguientes aspectos relacionados a las caracteristicas de la tarea")
 col3,col4=st.columns(2)
 with col3:
@@ -171,7 +209,7 @@ with col4:
     capucha = st.selectbox("¿Los trabajadores usan capucha?", ["No", "Si"])
     
     
-st.write("### Aislamiento térmico de la ropa")
+st.write("### 👕 Aislamiento térmico de la ropa")
 
 #Determinación de Cavs
 st.write("Acontinuación se le presentarán una serie de conjuntos para determinar el valor de CAVS, esto es necesario para calcular el TGBH")
@@ -184,7 +222,7 @@ if capucha == "Si":
 st.write ("El valor de Cavs corresponde a:", cavs)
 
 #Determinación de la tasa metábolica
-st.write("### Tasa metabólica")
+st.write("### 💪 Tasa metabólica")
 
 st.write("Ahora es necesario indicar el metabolismo. Seleccione una tasa metábolica que se ajuste a la labor.")
 
@@ -195,10 +233,11 @@ carga_metabolica=st.number_input("Ingrese la tasa metabólica (W/m²)", min_valu
 
 
 # Calcular e imprimir los resultados
-
+st.write("## 📊 Resultados de Evaluación")
 #Indice de Calor
 #Llamar a la función indice de calor
-st.write("### Resultados Índice de Calor")
+st.write("### 📈 Resultados Índice de Calor")
+
 heat_index,nivel,efecto,medidas_de_salud=indice_de_calor(temp_aire,humedad_relativa)
 
 #Graficar el indice de calor 
@@ -307,12 +346,15 @@ with st.expander("📊 Información sobre los niveles"):
 
 #TGBH
 #Llamar función tgbh
+st.write("### 🌡️ Resultados TGBH")
+st.write("El TGBH es un índice que considera la temperatura del aire, la humedad, la radiación solar y la velocidad del aire para evaluar el estrés térmico en ambientes calurosos.")
+st.write("Esta diseñado para evaluar jornadas de máximo 8 horas y con mediciones de al menos una hora.")
 wbgt,tgbh_efectivo,tgbh_ref,estado=tgbh(radiacion_solar,temp_aire,temp_globo,temp_bulbo,cavs,carga_metabolica,aclimatacion)
 # Mostrar los valores asignados después de que el usuario presione el botón
-st.write("### Resultados TGBH")
+
 st.write(f"TGBH: {round(wbgt,2)}")
-st.write(f"TGBHm efectivo: {round(tgbh_efectivo,2)}")
-st.write(f"TGBHm referencia: {round(tgbh_ref,2)}")
+st.write(f"TGBH efectivo: {round(tgbh_efectivo,2)}")
+st.write(f"TGBH referencia: {round(tgbh_ref,2)}")
 st.write(f"Usted se encuentra en: {estado}")
 # Definir las funciones para las dos curvas
 def curva_aclimatada(x):
@@ -364,57 +406,61 @@ if estado == "Estrés Térmico":
     
     st.write("### Resultados SWreq")
     # SWreq
+    st.write("Por favor tome en cuenta que el índice SWreq no es aplicable a exposiciones menores a 30 minutos o cuando emax < 0")
     mostrar_swreq = st.button("Calcular Índice de sudoración requerida")
     if mostrar_swreq:
         
         # Llamar a la función indice de sudoración
         dle_alarma_q, dle_peligro_q, dle_alarma_d, dle_peligro_d = indice_de_sudoracion(temp_aire, temp_globo, temp_bulbo, iclo, carga_metabolica, velocidad_aire, postura, aclimatacion, conveccion)
-        
-        # VISUALIZACIÓN MEJORADA - DIRECTAMENTE EN EL FLUJO
-        st.success("### 📈 Resultados SWreq - Tiempos Límite")
+        if dle_alarma_q == 0 and dle_peligro_q == 0 and dle_alarma_d == 0 and dle_peligro_d == 0:
+            st.error("❌ Error en el cálculo de SWreq. Cuando emax < 0 este metodo no puede ser utilizado. Por favor, revise los datos ingresados.")
+        else:
+            st.success("✅ Cálculo de SWreq completado exitosamente.")
+            # VISUALIZACIÓN MEJORADA - DIRECTAMENTE EN EL FLUJO
+            st.success("### 📈 Resultados SWreq - Tiempos Límite")
 
-        # Tarjetas con métricas en columnas
-        st.write("### 📋 Resumen de Límites")
-        col1, col2, col3, col4 = st.columns(4)
-        
-        with col1:
-            st.metric(
-                label="🟡 Alarma Acumulación",
-                value=format_time(dle_alarma_q) if dle_alarma_q != float('inf') else "Sin límite"
-            )
-        
-        with col2:
-            st.metric(
-                label="🔴 Peligro Acumulación", 
-                value=format_time(dle_peligro_q) if dle_peligro_q != float('inf') else "Sin límite"
-            )
-        
-        with col3:
-            st.metric(
-                label="🟠 Alarma Deshidratación",
-                value=format_time(dle_alarma_d) if dle_alarma_d != float('inf') else "Sin límite"
-            )
-        
-        with col4:
-            st.metric(
-                label="🔴 Peligro Deshidratación",
-                value=format_time(dle_peligro_d) if dle_peligro_d != float('inf') else "Sin límite"
-            )
-        
-        # Opción 3: Alertas visuales si los tiempos son críticos
-        st.write("### 🚨 Alertas de Seguridad")
-        
-        if dle_alarma_q != float('inf') and dle_alarma_q < 120:  # Menos de 2 horas
-            st.warning(f"⚠️ **Alarma por Acumulación de Calor**: Límite en {format_time(dle_alarma_q)} - Monitorear continuamente")
-        
-        if dle_peligro_q != float('inf') and dle_peligro_q < 240:  # Menos de 4 horas  
-            st.error(f"🚨 **Peligro por Acumulación de Calor**: Límite en {format_time(dle_peligro_q)} - Tomar acciones inmediatas")
-        
-        if dle_alarma_d != float('inf') and dle_alarma_d < 120:
-            st.warning(f"💧 **Alarma por Deshidratación**: Límite en {format_time(dle_alarma_d)} - Aumentar hidratación")
-        
-        if dle_peligro_d != float('inf') and dle_peligro_d < 240:
-            st.error(f"🔥 **Peligro por Deshidratación**: Límite en {format_time(dle_peligro_d)} - Hidratación urgente requerida")
+            # Tarjetas con métricas en columnas
+            st.write("### 📋 Resumen de Límites")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric(
+                    label="🟡 Alarma Acumulación",
+                    value=format_time(dle_alarma_q) if dle_alarma_q != float('inf') else "Sin límite"
+                )
+            
+            with col2:
+                st.metric(
+                    label="🔴 Peligro Acumulación", 
+                    value=format_time(dle_peligro_q) if dle_peligro_q != float('inf') else "Sin límite"
+                )
+            
+            with col3:
+                st.metric(
+                    label="🟠 Alarma Deshidratación",
+                    value=format_time(dle_alarma_d) if dle_alarma_d != float('inf') else "Sin límite"
+                )
+            
+            with col4:
+                st.metric(
+                    label="🔴 Peligro Deshidratación",
+                    value=format_time(dle_peligro_d) if dle_peligro_d != float('inf') else "Sin límite"
+                )
+            
+            # Opción 3: Alertas visuales si los tiempos son críticos
+            st.write("### 🚨 Alertas de Seguridad")
+            
+            if dle_alarma_q != float('inf') and dle_alarma_q < 120:  # Menos de 2 horas
+                st.warning(f"⚠️ **Alarma por Acumulación de Calor**: Límite en {format_time(dle_alarma_q)} - Monitorear continuamente")
+            
+            if dle_peligro_q != float('inf') and dle_peligro_q < 240:  # Menos de 4 horas  
+                st.error(f"🚨 **Peligro por Acumulación de Calor**: Límite en {format_time(dle_peligro_q)} - Tomar acciones inmediatas")
+            
+            if dle_alarma_d != float('inf') and dle_alarma_d < 120:
+                st.warning(f"💧 **Alarma por Deshidratación**: Límite en {format_time(dle_alarma_d)} - Aumentar hidratación")
+            
+            if dle_peligro_d != float('inf') and dle_peligro_d < 240:
+                st.error(f"🔥 **Peligro por Deshidratación**: Límite en {format_time(dle_peligro_d)} - Hidratación urgente requerida")
 
    # ISC - CÓDIGO CORREGIDO
     if iclo <0.6 and aclimatacion == "Si":

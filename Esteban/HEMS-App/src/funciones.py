@@ -135,7 +135,8 @@ def indice_de_sudoracion(temp_aire, temp_globo, temp_bulbo, iclo, carga_metaboli
 
     # Calcular Emax
     e_max = (presion_vapor_piel - presion_parcial_ambiente) / resistencia_total_vestido
-    
+    if e_max < 0:
+        return (0,0,0,0)
     # Cálculos de balance térmico
     c_res = 0.0014 * carga_metabolica * (35 - temp_aire)
     e_res = 0.0173 * carga_metabolica * (5.624 - presion_parcial_ambiente)
