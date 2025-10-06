@@ -7,6 +7,8 @@ from collections import deque
 from functools import lru_cache
 import asyncio, random, os, json, re
 
+
+#código para correrlo: python -m uvicorn mock_server_2:app --reload --port 8001
 # ====== Importa tus funciones de índices ======
 # Asegúrate de que Funciones.py está junto a este archivo.
 from Funciones import (

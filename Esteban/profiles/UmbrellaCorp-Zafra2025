@@ -1,0 +1,12 @@
+{
+  "postura": "De pie",
+  "aclimatación": "No",
+  "convección": "Natural",
+  "radiación": "Si",
+  "cavs": 4,
+  "carga_metabolica": 300.0,
+  "peso": 70.0,
+  "altura": 170.0,
+  "iclo": 0.395,
+  "Fecha": "20250912_170232"
+}

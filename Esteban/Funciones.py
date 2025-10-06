@@ -7,31 +7,89 @@ import numpy as np
 """Función para el cálculo del índice de calor"""
 
 def indice_de_calor(temp_aire, humedad_relativa):
-    if temp_aire < 27 or humedad_relativa < 40:
-        return "No aplica"
-    else:
-        temp_aire= temp_aire * 9/5 + 32  # Convertir a Fahrenheit
+    temp_aire= temp_aire * 9/5 + 32  # Convertir a Fahrenheit
+    indice_preliminar= 0.5*(temp_aire+61.0+((temp_aire-68)*1.2)+(humedad_relativa*0.094))
+    
+    medidas = {
+        "Nivel I": [
+            "Asegurar la disponibilidad de agua potable durante toda la jornada.",
+            "Proporcionar áreas de sombra (semi o permanentes) para descanso en campo abierto.",
+            "Proporcionar sombrero de ala ancha o gorra con cubre-cuello, mangas largas y usar protector solar cuando sea posible.",
+            "Capacitar a los trabajadores.",
+            "Cuando los trabajadores requieren el uso de prendas pesadas (CLO +1, +2), capas o uniformes no transpirables/impermeables, aplicar las medidas del nivel III.",
+            "Las personas que sean nuevas o que retornen al trabajo deben aclimatarse",
+            "Designar a una persona que esté capacitada sobre las manifestaciones clínicas relacionadas con la sobrecarga térmica y que sea capaz de informar a este respecto a la persona con la autoridad requerida y con la persona encargada de salud ocupacional para modificar las actividades laborales y el horario de trabajo/descanso como se requiera"
+        ],
+        "Nivel II": [
+            "Asegurar la disponibilidad de agua potable durante toda la jornada.",
+            "Proporcionar áreas de sombra (semi o permanentes) para descanso en campo abierto.",
+            "Proporcionar sombrero de ala ancha o gorra con cubre-cuello, mangas largas y usar protector solar cuando sea posible.",
+            "Capacitar a los trabajadores.",
+            "Cuando los trabajadores requieren el uso de prendas pesadas (CLO +1, +2), capas o uniformes no transpirables/impermeables, aplicar las medidas del nivel III.",
+            "Las personas que sean nuevas o que retornen al trabajo deben aclimatarse",
+            "Designar a una persona que esté capacitada sobre las manifestaciones clínicas relacionadas con la sobrecarga térmica y que sea capaz de informar a este respecto a la persona con la autoridad requerida y con la persona encargada de salud ocupacional para modificar las actividades laborales y el horario de trabajo/descanso como se requiera"
+        ],
+        "Nivel III": [
+            "Asegurar la disponibilidad de agua potable durante toda la jornada.",
+            "Proporcionar áreas de sombra (semi o permanentes) para descanso en campo abierto.",
+            "Proporcionar sombrero de ala ancha o gorra con cubre-cuello, mangas largas y usar protector solar cuando sea posible.",
+            "Capacitar a los trabajadores.",
+            "Las personas que sean nuevas o que retornen al trabajo deben aclimatarse",
+            "Designar a una persona que esté capacitada sobre las manifestaciones clínicas relacionadas con la sobrecarga térmica y que sea capaz de informar a este respecto a la persona con la autoridad requerida y con la persona encargada de salud ocupacional para modificar las actividades laborales y el horario de trabajo/descanso como se requiera",
+            "Establecer y cumplir horarios de trabajo/descanso.",
+            "Informar a las personas trabajadoras sobre el horario establecido.",
+            "Si el trabajo se realiza directamente bajo el sol, aplicar las medidas específicas del nivel IV descritas para esa condición."
+        ],
+        "Nivel IV": [
+            "Asegurar la disponibilidad de agua potable durante toda la jornada.",
+            "Suministrar bebidas rehidratantes según normativa del Ministerio de Salud.",
+            "Proporcionar áreas de sombra (semi o permanentes) para descanso en campo abierto.",
+            "Proporcionar sombrero de ala ancha o gorra con cubre-cuello, mangas largas y usar protector solar cuando sea posible.",
+            "Capacitar a los trabajadores.",
+            "Las personas que sean nuevas o que retornen al trabajo deben aclimatarse",
+            "Designar a una persona que esté capacitada sobre las manifestaciones clínicas relacionadas con la sobrecarga térmica y que sea capaz de informar a este respecto a la persona con la autoridad requerida y con la persona encargada de salud ocupacional para modificar las actividades laborales y el horario de trabajo/descanso como se requiera",
+            "Establecer y cumplir horarios de trabajo/descanso.",
+            "Informar a las personas trabajadoras sobre el horario establecido.",
+        ],
+    }
+    
+    if indice_preliminar >= 80:
         ih =-42.379 + 2.04901523*temp_aire + 10.14333127*humedad_relativa - .22475541*temp_aire*humedad_relativa - .00683783*temp_aire*temp_aire - .05481717*humedad_relativa*humedad_relativa + .00122874*temp_aire*temp_aire*humedad_relativa + .00085282*temp_aire*humedad_relativa*humedad_relativa - .00000199*temp_aire*temp_aire*humedad_relativa*humedad_relativa
-        
+        #Ajuste 1. Si la humedad relativa es menor al 13% y la temperatura del aire está entre 80°F y 112°F se resta el ajuste
+        if (humedad_relativa <13) and (80 < temp_aire <112):
+            ajuste= ((13-humedad_relativa)/4)*math.sqrt((17-abs(temp_aire-95))/17)
+            ih=ih-ajuste
+        #Ajuste 2. Si la humedad relativa es mayor al 85% y la temperatura del aire está entre 80°F y 87°F se suma el ajuste
+        if (80 < temp_aire <87) and (humedad_relativa > 85):
+            ajuste= ((humedad_relativa-85)/10) * ((87-temp_aire)/5)
+            ih=ih+ajuste
+    else:
+        ih=indice_preliminar
     if ih <91:
         nivel="Nivel I"
         efecto= "Es posible que tenga fatiga con exposiciones prolongadas y actividad física."
-        return (ih, nivel, efecto)
-    if 91<= ih <103:
+        medidas_por_nivel = medidas[nivel]
+        return (ih, nivel, efecto, medidas_por_nivel)
+    elif 91<= ih <103:
         nivel="Nivel II"
-        efecto="Fatiga probable con actividad física prolongada. Continuar con precaución."
-        return (ih, nivel, efecto)
-    if 103<= ih <125:
+        efecto="Posible insolación, calambres y agotamiento por exposición prolongada y actividad física"
+        medidas_por_nivel = medidas[nivel]
+        return (ih, nivel, efecto, medidas_por_nivel)
+    elif 103<= ih <125:
         nivel="Nivel III"
-        efecto= "Fatiga con actividad física moderada. Continuar con precaución."
-        return (ih, nivel, efecto)
-    if ih >=125:        
+        efecto= "Probable insolación, calambres y agotamiento por exposición prolongada y actividad física"
+        medidas_por_nivel = medidas[nivel]
+        return (ih, nivel, efecto, medidas_por_nivel)
+    elif ih >=125:        
         nivel="Nivel IV"
-        efecto= "Fatiga con actividad física ligera. Continuar con precaución."
-        return (ih, nivel, efecto)
+        efecto= "Probabilidad alta de insolación, golpe de calor "
+        medidas_por_nivel = medidas[nivel]
+        return (ih, nivel, efecto, medidas_por_nivel)
+    
+        
 
 
-"""Función para el cálculo del índice de sobre carga calorica. (SWreq)"""
+"""Función para el cálculo del índice de sudoracion requerida (SWreq)"""
 
 def indice_de_sudoracion(temp_aire, temp_globo, temp_bulbo, iclo, carga_metabolica, velocidad_aire, postura, aclimatacion, conveccion):
     #Definición de constantes
@@ -189,29 +247,33 @@ def indice_sobrecarga_calorica(carga_metabolica,velocidad_aire, temp_globo, temp
     # Cálculo del Índice de Sobrecarga Calórica (ISC)
     indice_sobrecarga_calorica = (evaporacion_req /evaporacion_max) * 100
 
-    # Clasificación de la sobrecarga calórica
-    clasificacion_isc=0
-    if 10 < indice_sobrecarga_calorica < 30:
-        clasificacion_isc="Sobrecarga calórica que oscila entre suave y moderada."
-    elif 40 < indice_sobrecarga_calorica < 60:
-        clasificacion_isc=("Sobrecarga calórica severa")
-    elif 70 < indice_sobrecarga_calorica < 90:
-        clasificacion_isc=("Sobrecarga calórica muy severa")
+        # Clasificación según la nueva escala
+    if indice_sobrecarga_calorica <= 10:
+        clasificacion_isc = "Confort térmico"
+    elif indice_sobrecarga_calorica <= 30:
+        clasificacion_isc = "Carga suave"
+    elif indice_sobrecarga_calorica <= 40:
+        clasificacion_isc = "Carga moderada (Zona de alarma)"
+    elif indice_sobrecarga_calorica <= 80:
+        clasificacion_isc = "Carga severa"
+    elif indice_sobrecarga_calorica < 100:
+        clasificacion_isc = "Carga muy severa"
     elif indice_sobrecarga_calorica == 100:
-        clasificacion_isc=("Sobrecarga calórica máxima permisible")
-    elif indice_sobrecarga_calorica > 100:
-        clasificacion_isc=("Condiciones críticas por sobrecarga calórica")
-        
-    if evaporacion_req <= evaporacion_max:
-        tiempo_exp_per = float('inf')  # Infinito si no hay sobrecarga calórica
+        clasificacion_isc = "Carga máxima permisible"
     else:
-        tiempo_exp_per=2440/(evaporacion_req-evaporacion_max)
-    
-    #Tiempo de recuperación
-    superficie_corporal=(peso**0.425)*(altura**0.725)*0.007184
-    tiempo_de_recuperacion= (58+peso*1)/((evaporacion_max-evaporacion_req)*superficie_corporal) #minutos
+        clasificacion_isc = "Condiciones críticas por sobrecarga calórica"
 
-    return (indice_sobrecarga_calorica, clasificacion_isc, tiempo_exp_per, tiempo_de_recuperacion,evaporacion_max,evaporacion_req)
+    # Cálculo del tiempo de exposición permitido
+    if indice_sobrecarga_calorica > 100:
+        tiempo_exp_per = 2440 / (evaporacion_req - evaporacion_max)
+    else:
+        tiempo_exp_per = float('inf')
+    
+    #Tiempo de recuperación Programable posteriormente ya que requiere de las condiciones de la zona de descanso
+    #superficie_corporal=(peso**0.425)*(altura**0.725)*0.007184
+    #tiempo_de_recuperacion= (58+peso*1)/((evaporacion_max-evaporacion_req)*superficie_corporal) #minutos
+    
+    return (indice_sobrecarga_calorica, clasificacion_isc, tiempo_exp_per, evaporacion_max, evaporacion_req)
 
 """Función para calcular el tiempo en horas y minutos"""
 #Función para mostrar el tiempo en formato horas y minutos
