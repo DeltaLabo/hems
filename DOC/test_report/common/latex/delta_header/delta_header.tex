@@ -1,0 +1,26 @@
+\usepackage{graphicx}
+\usepackage[absolute,overlay]{textpos}
+\usepackage{tcolorbox}
+
+% Provide commands to input title and subtitle
+\makeatletter
+\providecommand{\doctitle}[1]{\def\@doctitle{#1}}
+\providecommand{\docsubtitle}[1]{\def\@docsubtitle{#1}}
+
+% Set default values to empty
+\doctitle{}
+\docsubtitle{}
+
+% Generate the Delta header
+\newcommand{\makedeltaheader}{%
+    \begin{flushleft}
+        {\Huge \textbf{\@doctitle}}\\[4pt] 
+        \@docsubtitle\\[3pt]
+        Delta Laboratory\\[2pt]
+    \end{flushleft}
+
+    \begin{textblock*}{2cm}(16cm,2cm) 
+        \includegraphics[width=2.5cm]{../../../common/images/delta_logo_with_text_no_bg.png}
+    \end{textblock*}
+}
+\makeatother

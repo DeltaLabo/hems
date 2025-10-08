@@ -1,0 +1,185 @@
+\documentclass{common/latex/delta_base_styles/delta_base_styles}
+
+\addbibresource{example_refs.bib}
+
+% Safe imports
+\subimport{common/latex/delta_header/}{delta_header.tex}
+\subimport{common/latex/equipment_table/}{equipment_table.tex}
+\subimport{common/latex/signature_table/}{signature_table.tex}
+\subimport{common/latex/version_approval_table/}{version_approval_table.tex}
+\graphicspath{
+  {common/latex/delta_base_styles/}
+  {common/latex/delta_header/}
+  {common/latex/equipment_table/}
+  {common/latex/signature_table/}
+  {common/latex/version_approval_table/}
+}
+
+% Set metadata
+\doctitle{Test Report Template}
+\docsubtitle{Based on ISO/IEC/IEEE 29119, IEC 60068, ISO/IEC 17025}
+
+\docid{TEST-000}
+\version{1.0}
+\docdate{\today}
+\preparedby{Alice}
+\approvedby{Bob}
+\observations{None}
+
+\begin{document}
+
+\makedeltaheader
+
+\section{Test Plan Summary}
+\makeversionapprovaltable
+
+\section{Purpose and Scope}
+\textcolor{DarkCyan} {Explain why the test is being performed and what it consists of, including:} 
+\begin{itemize}
+  \item \textbf{Main objective of the test:} Describe the purpose, such as functional verification, performance evaluation, or compliance validation.
+  \item \textbf{Limits of the test:} Specify which subsystems are included or excluded from the scope.
+  \item \textbf{Key focus areas:} Indicate any special aspects to be checked, for example environmental resistance, calibration traceability, or safety features).
+\end{itemize}
+
+\section{References}
+
+\textcolor{DarkCyan} {List all documents, standards, and procedures used to design or execute the test.}
+\begin{itemize}
+  \item \textbf{Standards:} 
+  \nocite{ISO29119,IEC60068,ISO17025} % asegura que se impriman aunque no las cites explícitamente
+  \printbibliography[heading=none]
+  \item \textbf{Design Documents:} Engineering drawings, schematics, datasheets.
+  \item \textbf{Internal Procedures:} Company testing protocols, safety guidelines.
+\end{itemize}
+
+\section{Definitions and Abbreviations}
+
+\textcolor{DarkCyan} {Avoid confusion by clarifying technical terms and acronyms.}
+\begin{itemize}
+  \item \textbf{DUT:} Device Under Test – The hardware being tested.
+  \item \textbf{EUT:} Equipment Under Test – Same as DUT, used in some standards.
+  \item \textbf{RBF:} Remove-Before-Flight safety pin.
+\end{itemize}
+
+\section{Test Item Identification}
+
+\renewcommand{\arraystretch}{1.3} 
+\setlength{\tabcolsep}{3pt}      
+
+\begin{tabular}{|>{\centering\arraybackslash}m{2.9cm}
+                |>{\centering\arraybackslash}m{2.9cm}
+                |>{\centering\arraybackslash}m{2.9cm}
+                |>{\centering\arraybackslash}m{2.9cm}
+                |>{\centering\arraybackslash}m{3.2cm}|}
+\hline
+\textbf{Name / Idem Number} & \textbf{Serial Number / Revision} & \textbf{Manufacturer} & \textbf{Configuration (HW/SW)} & \textbf{Photographs / Diagrams} \\ 
+\hline
+Enter the official idem name or code 
+& Enter serial number and revision code 
+& Manufacturer name 
+& Hardware and software version details 
+& Include reference to images or diagrams showing identification marks \\
+\hline
+\end{tabular}
+
+\section{Test Environment and Equipment}
+
+\subsection{Environmental Conditions}
+
+\textcolor{DarkCyan} {Document the physical conditions during the test.}
+\begin{itemize}
+    \item Ambient temperature (°C)
+    \item Humidity (\%)
+    \item Pressure (if relevant and applicable)
+    \item EMC/EMI background (if relevant and applicable)
+\end{itemize}
+
+\subsection{Test Equipment}
+
+\equipmenttable{
+  1 & Equipment name & Type or Model & Manufacturer & Calibration Date & Serial No. & Notes \\
+  \hline
+  2 & Oscilloscope & MSO-X 3054A & Keysight & 2024-11-15 & ABC456 & 500 MHz bandwidth \\
+  \hline
+}
+
+\section{Test Inputs, Outputs, and Acceptance Criteria}
+\subsection{Test Inputs}
+\textcolor{DarkCyan} {List all inputs applied to the DUT (voltages, loads, software commands).}
+\subsection{Expected Outputs}
+\textcolor{DarkCyan} {Describe measurable responses (voltage, signal shape, movement, LED indicators, etc.).}
+\subsection{Acceptance Criteria}
+\textcolor{DarkCyan} {Set the pass/fail limits:}
+\begin{itemize}
+    \item Tolerances (± values)
+    \item Minimum performance thresholds
+    \item Safety constraints
+\end{itemize}
+
+\section{Test Procedure}
+\textcolor{DarkCyan} {Provide a clear, step-by-step process so the test can be repeated exactly.}
+\begin{enumerate}
+    \item \textbf{Setup:} Prepare the DUT, connect equipment, configure environment.
+    \item \textbf{Action:} Apply stimulus or command.
+    \item \textbf{Measurement:} Record DUT response.
+    \item \textbf{Verification:} Compare with acceptance criteria.
+\end{enumerate}    
+
+\renewcommand{\arraystretch}{1.3} 
+\setlength{\tabcolsep}{3pt}      
+
+\begin{tabular}{|>{\centering\arraybackslash}m{0.9cm}
+                |>{\centering\arraybackslash}m{3.5cm}
+                |>{\centering\arraybackslash}m{3.5cm}
+                |>{\centering\arraybackslash}m{3.5cm}
+                |>{\centering\arraybackslash}m{3.5cm}|}
+\hline
+\textbf{Step} & \textbf{Input Condition} & \textbf{Expected Output} & \textbf{Actual Output} & \textbf{Pass/Fail} \\
+\hline
+1 & & & & \\
+\hline
+2 & & & & \\
+\hline
+3 & & & & \\
+\hline
+\end{tabular}
+
+\section{Results}
+
+\subsection{Raw Data}
+\textcolor{DarkCyan} {Attach logs, oscilloscope screenshots, photos, or measurement sheets.}
+
+\subsection{Analysis}
+\textcolor{DarkCyan} {Highlight anomalies, trends, and deviations from expected performance.}
+
+\section{Conclusion}
+\begin{itemize}
+    \item \textbf{Overall Result:} Indicate if the DUT passed or failed the tests.
+    \item \textbf{Key Observations:} Summarize important findings, anomalies, or deviations from expected behavior.
+\end{itemize}
+
+\section{Signatures}
+
+\makeatletter
+\signatureTable{
+\@approvedby & Approver & \@docdate & \\ 
+\hline
+}
+\makeatother
+
+\section{Annexes}
+\textcolor{DarkCyan} {Include:}
+\begin{itemize}
+    \item Test circuit diagrams.
+    \item Environmental chamber profiles.
+    \item Calibration certificates.
+\end{itemize}
+
+\vspace{3cm}
+\begin{center}
+\Huge \textcolor{DarkCyan}{\textbf{IMPORTANT:} \\[0.5cm]}
+\large 
+\textcolor{DarkCyan}{This template is a guide, not a pre-filled report. All instructions and example text must be replaced with the actual test information, ensuring accuracy, completeness, and compliance with international laboratory standards. Text written in dark cyan is a visual reminder that it must be replaced with the real test data.}
+\end{center}
+
+\end{document}

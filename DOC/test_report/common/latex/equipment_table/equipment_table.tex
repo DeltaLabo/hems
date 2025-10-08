@@ -1,0 +1,22 @@
+% equipment_table.tex
+%
+% Defines a reusable command for creating a table of equipment.
+%
+% This command, \equipmenttable, takes one argument which is the body of the table.
+% The table body should be a series of rows, with each row ending in \\ \hline.
+%
+% Example usage:
+% \equipmenttable{
+%   1 & Equipment name & Type or Model & Manufacturer & Calibration Date & Serial No. & Notes \\
+%   \hline
+%   2 & Oscilloscope & MSO-X 3054A & Keysight & 2024-11-15 & ABC456 & 500 MHz bandwidth \\
+%   \hline
+% }
+\newcommand{\equipmenttable}[1]{
+    \begin{tabular}{|p{0.7cm}|p{2.7cm}|p{2.4cm}|p{2.4cm}|p{2.4cm}|p{1.8cm}|p{2cm}|}
+    \hline
+    \textbf{No.} & \textbf{Equipment Name} & \textbf{Model/Type} & \textbf{Manufacturer} & \textbf{Calibration Date} & \textbf{Serial No.} & \textbf{Notes} \\
+    \hline
+    #1
+    \end{tabular}
+}
