@@ -5,7 +5,7 @@ import numpy as np
 
 """Función para el cálculo del índice de calor"""
 
-def indice_de_calor(temp_aire, humedad_relativa):
+def indice_de_calor(temp_aire, humedad_relativa, exposicion_solar):
     temp_aire= temp_aire * 9/5 + 32  # Convertir a Fahrenheit
     indice_preliminar= 0.5*(temp_aire+61.0+((temp_aire-68)*1.2)+(humedad_relativa*0.094))
     
@@ -67,25 +67,39 @@ def indice_de_calor(temp_aire, humedad_relativa):
     if ih <91:
         nivel="Nivel I"
         efecto= "Es posible que tenga fatiga con exposiciones prolongadas y actividad física."
-        medidas_por_nivel = medidas[nivel]
-        return (ih, nivel, efecto, medidas_por_nivel)
+        if exposicion_solar == "Si":
+            nivel_para_medidas="Nivel II"
+            medidas_por_nivel = medidas[nivel_para_medidas]
+        else:
+            nivel_para_medidas="Nivel I"
+            medidas_por_nivel = medidas[nivel]
+        return (ih, nivel, efecto, medidas_por_nivel,nivel_para_medidas)
     elif 91<= ih <103:
         nivel="Nivel II"
         efecto="Posible insolación, calambres y agotamiento por exposición prolongada y actividad física"
-        medidas_por_nivel = medidas[nivel]
-        return (ih, nivel, efecto, medidas_por_nivel)
+        if exposicion_solar == "Si":
+            nivel_para_medidas="Nivel III"
+            medidas_por_nivel = medidas[nivel_para_medidas]
+        else:
+            nivel_para_medidas="Nivel II"
+            medidas_por_nivel = medidas[nivel]
+        return (ih, nivel, efecto, medidas_por_nivel,nivel_para_medidas)
     elif 103<= ih <125:
         nivel="Nivel III"
         efecto= "Probable insolación, calambres y agotamiento por exposición prolongada y actividad física"
-        medidas_por_nivel = medidas[nivel]
-        return (ih, nivel, efecto, medidas_por_nivel)
+        if exposicion_solar == "Si":
+            nivel_para_medidas="Nivel IV"
+            medidas_por_nivel = medidas[nivel_para_medidas]
+        else:
+            nivel_para_medidas="Nivel III"
+            medidas_por_nivel = medidas[nivel]
+        return (ih, nivel, efecto, medidas_por_nivel,nivel_para_medidas)
     elif ih >=125:        
         nivel="Nivel IV"
         efecto= "Probabilidad alta de insolación, golpe de calor "
         medidas_por_nivel = medidas[nivel]
-        return (ih, nivel, efecto, medidas_por_nivel)
-    
-        
+        nivel_para_medidas="Nivel IV"
+        return (ih, nivel, efecto, medidas_por_nivel,nivel_para_medidas)
 
 
 """Función para el cálculo del índice de sudoracion requerida (SWreq)"""

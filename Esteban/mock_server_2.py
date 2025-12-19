@@ -11,7 +11,7 @@ import asyncio, random, os, json, re
 #código para correrlo: python -m uvicorn mock_server_2:app --reload --port 8001
 # ====== Importa tus funciones de índices ======
 # Asegúrate de que Funciones.py está junto a este archivo.
-from Funciones import (
+from funciones import (
     indice_de_sudoracion,          # (Ta, Tg, Tnw, iclo, M, Va, postura, aclimatacion, conveccion)
     tgbh,                          # (radiacion_solar, Ta, Tg, Tnw, cavs, M, aclimatacion)
     indice_sobrecarga_calorica     # (M, Va, Tg, Ta, Tnw, iclo, altura, peso)
