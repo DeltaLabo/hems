@@ -1,0 +1,19 @@
+% signature_table.tex
+%
+% Defines a reusable command for creating a table with document signatures.
+%
+% This command, \signatureTable, takes one argument which is the body of the table.
+% The table body should be a series of rows, with each row ending in \\ \hline.
+% Example usage:
+% \signatureTable{
+% Name of the person & Role of the person & Date & \\ % Leave last field blank for physical signature
+% \hline
+% }
+\newcommand{\signatureTable}[1]{
+    \begin{tabular}{|p{4.5cm}|p{4.0cm}|p{2.5cm}|p{4.5cm}|}
+    \hline
+    \textbf{Name} & \textbf{Role} & \textbf{Date} & \textbf{Signature} \\
+    \hline
+    #1
+    \end{tabular}
+}

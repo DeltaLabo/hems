@@ -15,7 +15,9 @@ Heat exposure monitoring and alert system HEMS
 
 * [Angie Cubillo](mailto:ancubillo@estudiantec.cr)
 
-* [Kaled Granados](mailto:kalebgranac13@estudiantec.cr)
+* [Kaleb Granados](mailto:kalebgranac13@estudiantec.cr)
+
+* [Luis Ledezma](mailto:lledezma13luis@gmail.com)
 
 * [Felipe Montero](mailto:femontero@estudiantec.cr)
 
@@ -26,6 +28,7 @@ Heat exposure monitoring and alert system HEMS
 * [Bryan Suazo](mailto:bsuazo@estudiantec.cr)
 
 * [Roy David Moya](mailto:roy.d.777@estudiantec.cr)
+
 
 
 ### What is this repository for? ###

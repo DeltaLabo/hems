@@ -1,0 +1,60 @@
+% version_approval.tex
+%
+% This file provides a standard document version approval table.
+%
+% To use it, include this file in your main LaTeX document using \subimport
+% and then use the \makeversionapprovaltable command where you want the
+% table to appear.
+% 
+% This table looks best on single column document sections.
+%
+% You can set the data for the table using the following commands in your
+% document's preamble:
+%
+%   \docid{XYZ-001}
+%   \version{1.0}
+%   \docdate{\today}
+%   \preparedby{John Doe}
+%   \approvedby{Peter Jones}
+%   ...
+%   \begin{document}
+%   \makeversionapprovaltable
+%   ...
+
+\NeedsTeXFormat{LaTeX2e}
+\usepackage{array}
+\usepackage{multirow}
+
+% Provide commands to input versioning and approval data
+\makeatletter
+\providecommand{\docid}[1]{\def\@docid{#1}}
+\providecommand{\version}[1]{\def\@version{#1}}
+\providecommand{\preparedby}[1]{\def\@preparedby{#1}}
+\providecommand{\approvedby}[1]{\def\@approvedby{#1}}
+\providecommand{\observations}[1]{\def\@observations{#1}}
+\providecommand{\docdate}[1]{\def\@docdate{#1}}
+
+% Set default values to empty
+\docid{}
+\version{}
+\preparedby{}
+\approvedby{}
+\observations{}
+\docdate{}
+
+% Generate the version approval table
+\newcommand{\makeversionapprovaltable}{%
+    \begin{tabular}{|p{2.5cm}|p{1.3cm}|p{2.0cm}|p{2.5cm}|p{2.5cm}|p{2.2cm}|}
+      \hline
+      \textbf{Document ID} & \textbf{Version} & \textbf{Date} & \textbf{Prepared By} & \textbf{Approved By} & \textbf{Observations} \\
+      \hline
+      \@docid &
+      \@version &
+      \@docdate &
+      \@preparedby &
+      \@approvedby &
+      \@observations \\
+      \hline
+    \end{tabular}
+}
+\makeatother

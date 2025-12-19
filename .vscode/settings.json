@@ -1,0 +1,7 @@
+{
+  "latex-workshop.latex.recipe.default": "latexmk (lualatex)",
+  "latex-workshop.latex.autoClean.run": "onSucceeded",
+  "latex-workshop.latex.clean.method": "glob",
+  "latex-workshop.latex.clean.subfolder.enabled": true,
+  "latex-workshop.latex.clean.fileTypes": ["*.aux","*.bbl","*.blg","*.fdb_latexmk","*.fls","*.log","*.out","*.run.xml","*.synctex.gz","*.toc","*.xdv","*.nav","*.snm"],
+}
