@@ -1,0 +1,52 @@
+@startuml diagrama_pilot_app
+actor Usuario
+
+package "Sistema HEMS (Streamlit App)" {
+  
+  component "Interfaz de Usuario (UI)" as UI {
+    [CSV uploader]
+    [Inputs manuales]
+    [Selectbox opciones]
+    [Expander normativas]
+    [Métricas y alertas]
+    [Gráficos (Altair, Matplotlib)]
+  }
+
+  component "Procesamiento de Datos" as Procesamiento {
+    [Validación de CSV]
+    [Asignación de valores por defecto]
+    [Mapeo columnas -> variables]
+  }
+
+  component "Funciones de Evaluación" as Funciones {
+    [indice_de_calor]
+    [tgbh]
+    [indice_de_sudoracion]
+    [indice_sobrecarga_calorica]
+    [format_time]
+  }
+
+  component "Datos de Referencia (CSV)" as Datos {
+    [CAVS.csv]
+    [Metabolismo.csv]
+    [Aislamiento.csv]
+  }
+
+  component "Resultados y Visualización" as Resultados {
+    [Índice de Calor]
+    [TGBH]
+    [SWreq]
+    [ISC]
+    [Medidas de prevención]
+    [Alertas de seguridad]
+  }
+}
+
+Usuario --> UI
+UI --> Procesamiento
+Procesamiento --> Funciones
+Funciones --> Datos
+Funciones --> Resultados
+Resultados --> UI
+
+@enduml

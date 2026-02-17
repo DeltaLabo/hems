@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entornos virtuales
+venv/
+env/
+.venv/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Streamlit - CRÍTICO
+.streamlit/secrets.toml
+
+# Logs y temporales
+*.log
+*.tmp
+*.temp
+
+# NOTA: Los CSV en data/ SÍ se suben porque son esenciales para la app

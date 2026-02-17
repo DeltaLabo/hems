@@ -1,0 +1,44 @@
+@startuml ambient_measurement_system
+actor Usuario
+
+package "ESP32S3 Multi-sensor Logger" {
+
+  component "Sensores I2C" as Sensores {
+    [SHT31 #1 (Temp/Humedad)]
+    [SHT31 #2 (Temp/Humedad)]
+    [AS7331 (UV A/B/C)]
+    [BME280/BMP280 (Temp/Presión/Humedad)]
+    [INA219 (Voltaje, Corriente, Potencia)]
+  }
+
+  component "Comunicación" as Comunicacion {
+    [Wi-Fi]
+    [NTP (Fecha/Hora ISO8601)]
+  }
+
+  component "Interfaz Usuario" as UI {
+    [LCD I2C (20x4)]
+    [Serial Monitor]
+  }
+
+  component "Almacenamiento" as Almacenamiento {
+    [microSD (SdFat)]
+    [CSV Logger (datos.csv)]
+  }
+
+  component "Procesamiento" as Procesamiento {
+    [Validación sensores]
+    [Promedio INA219]
+    [Detección sobrecorriente]
+    [Cálculo energía acumulada]
+    [Flags de estado]
+  }
+}
+
+Usuario --> UI
+UI --> Procesamiento
+Procesamiento --> Sensores
+Procesamiento --> Comunicacion
+Procesamiento --> Almacenamiento
+Almacenamiento --> UI
+@enduml
