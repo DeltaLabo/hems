@@ -4,7 +4,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 # --- Configuración InfluxDB ---
 url = "https://us-east-1-1.aws.cloud2.influxdata.com"
 token = "Tu_Token"
-org = "Tu_organización"
+org = "HEMS"
 bucket = "pruebas"
 
 client = InfluxDBClient(url=url, token=token, org=org)

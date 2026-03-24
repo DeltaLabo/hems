@@ -7,4 +7,4 @@ Requerimientos en formato Latex y PDF
 
 Historial de versiones:
 
-Versión 1.0: Requerimientos iniciales del proyecto
+Versión 1.0: Requerimientos del proyecto
