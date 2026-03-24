@@ -1,0 +1,124 @@
+Identificador;Descripción del requerimiento;RequisitoPrevio
+R.SH-1; El sistema deberá poder calcular el índice TGBH, acorde a lo establecido en la norma 7243.;-
+R.SH-2; El sistema deberá poder calcular el índice ISR (índice de sudoración requerida).;-
+R.SH-3; El sistema deberá poder calcular el índice UV.;-
+R.SH-4; Los datos medidos e índices de estrés térmico calculados deberán poder ser almacenados en un servidor en la nube.;-
+R.SH-5; Los datos deberán poder ser almacenados localmente, al menos por seis meses.;-
+R.SH-6; El sistema deberá poder resistir las condiciones ambientales del lugar de instalación, en las fincas de caña de azúcar de Costa Rica, incluyendo polvo y lluvia.;-
+R.SH-7; El sistema deberá generar alertas a través del software de monitoreo de condiciones ambientales, cuando los índices de estrés térmico que calcule el sistema, excedan un límite dado.;-
+R.SH-8; El sistema deberá poder ser actualizable en su firmware, de manera local.;-
+R.SH-9; El sistema deberá cumplir con una verificación con un monitor de TGBH de referencia.;-
+R.SH-10; El sistema deberá poder ser transportable en un automóvil o vehículo doble tracción.;-
+R.SH-11; El sistema de almacenamiento en nube, cálculos matemáticos, gráficos y alertas deberá poder ser actualizable en su software, de manera remota.;-
+R.SH-12; El sistema deberá poder ser alimentado de manera aislada, en caso de no tener acceso a electricidad de la red eléctrica comercial;-
+
+R.AVMS-1; El sistema deberá poder medir la temperatura seca; R.SH-1
+R.AVMS-2; El sistema deberá poder medir la temperatura de globo; R.SH-1
+R.AVMS-3; El sistema deberá poder medir la velocidad del viento; R.SH-1
+R.AVMS-4; El sistema deberá poder medir la humedad relativa; R.SH-1
+R.AVMS-5; El sistema deberá poder medir la radiación UV-A; R.SH-3
+R.AVMS-6; El sistema deberá poder medir la radiación UV-B; R.SH-3
+R.AVMS-7; El sistema deberá tener una memoria de almacenamiento masivo local; R.SH-5
+R.AVMS-8; El sistema deberá tener una resistencia al polvo;R.SH-6
+R.AVMS-9; El sistema deberá permitir su limpieza del polvo durante sus mantenimientos;R.SH-6
+R.AVMS-10; El sistema deberá tener una resistencia a la lluvia;R.SH-6
+R.AVMS-11; El sistema deberá admitir ser actualizable a través de un protocolo USB;R.SH-8
+R.AVMS-12; El sistema deberá tener un error menor al 3% al ser comparado con el TGBH de referencia;R.SH-9
+R.AVMS-13; El sistema deberá poder ser plegable, lo suficiente para que pueda ser transportable de forma segurda en el techo de un vehículo;R.SH-10
+R.AVMS-14; El sistema deberá contar con un sistema de energía renovable;R.SH-12
+R.AVMS-15; El sistema deberá contar con un sistema de baterías;R.SH-12
+R.AVMS-16; El sistema deberá contar con acceso a internet;R.SH-4
+R.AVMS-17; El sistema deberá poder codificar en hexadecimal los datos transmitidos al servidor;R.SH-4
+R.AVMS-18; El sistema deberá poder enviar datos a través del protocolo MQTT;R.SH-4
+R.AVMS-19; El sistema deberá tener un sistema de protección de sobretensión;R.SH-12
+R.AVMS-20; El sistema deberá tener un sistema de estabilización de energía entregada a los componentes electrónicos;R.SH-12
+R.AVMS-21; El sistema deberá tener una máquina de estados, que le permita modificar su operación según variables previamente programadas;R.SH-12
+R.AVMS-22; El sistema deberá poder soportar temperaturas ambientales de hasta 45 grados Celcius;R.SH-6
+R.AVMS-23; El sistema deberá poder soportar humedades relativas desde el 0 % hasta el 100 %;R.SH-6
+R.AVMS-24; El sistema deberá poder calcular promedios de datos provenientes de variables medidas;R.SH-1, R.SH-2, R.SH-3 y R.SH-4
+
+R.PDS-1; El sistema deberá contar con una fuente de alimentación capaz de entregar voltaje estable de 3.6 V ±+- 0.1 V; R.AVMS-5
+R.PDS-2; La fuente de alimentación deberá tener protección contra sobrecorriente y cortocircuito; R.AVMS-5
+R.PDS-3; El sistema deberá contar con una batería recargable con autonomía mínima de 14 horas; R.AVMS-6
+R.PDS-4; La batería deberá tener protección contra descarga profunda y sobrecarga; R.AVMS-6
+R.PDS-5; El sistema deberá guardar datos sobre nivel de carga, estado de batería y generación renovable.;R.AVMS-14 y R.AVMS-15
+R.PDS-6; El sistema deberá tener encapsulado con protección ambiental IP65; R.AVMS-10
+R.PDS-7; El sistema deberá permitir recarga mediante fuente solar o alimentador de 12 VDC; R.AVMS-6
+R.PDS-8; El sistema de potencia deberá comunicar al procesador central el estado energético para gestión inteligente.; R.AVMS-21
+
+R.COMS-1; Módulo de red: El sistema deberá contar con un módulo de comunicación WiFi que permita enviar datos al servidor en la nube;R.AVMS-16
+R.COMS-2; Módulo de red: El sistema deberá contar con un módulo de comunicación LTE que permita enviar datos al servidor en la nube;R.AVMS-16
+R.COMS-3; Codificación de datos: El sistema deberá implementar un algoritmo que convierta los datos en formato hexadecimal antes de la transmisión.;R.AVMS-17
+R.COMS-4; Protocolo de transmisión: El sistema deberá soportar MQTT con cifrado TLS para enviar datos de manera segura y confiable.;R.AVMS-18
+R.COMS-5; Redundancia de comunicación: El sistema deberá contar con mecanismos de reconexión automática en caso de pérdida de señal.;R.AVMS-16
+R.COMS-6; Integridad de datos: El sistema deberá verificar la integridad de los paquetes transmitidos mediante checksum o hash.;R.AVMS-17 y R.AVMS-18
+ 
+R.CPU-1; Procesamiento central: El sistema deberá contar con un procesador capaz de ejecutar cálculos matemáticos en tiempo real;R.AVMS-1, R.AVMS-2, R.AVMS-3 y R.AVMS-4
+R.CPU-2; Firmware actualizable: El CPU deberá contar con un conector tipo USB.;R.AVMS-11
+R.CPU-3; Validación de sensores: El CPU deberá poder verificar si los sensores lograron conectarse; 
+R.CPU-4; Medición sin interrupción: El CPU deberá poder mantener el intervalo de medición, cuando transmita los datos al servidor;R.AVMS-4
+R.CPU-5; Gestión de memoria: el CPU deberá administrar almacenamiento temporal (buffer) para evitar pérdida de datos durante transmisión; R.AVMS-7
+R.CPU-6; Sincronización temporal: el CPU deberá mantener reloj interno o sincronización con servidor para trazabilidad de mediciones; R.AVMS-16
+R.CPU-7; Consumo eficiente: el CPU deberá optimizar su consumo energético para extender la autonomía del sistema, en caso de requerirse; R.AVMS-6
+R.CPU-8; Seguridad de firmware: el CPU deberá permitir verificación de integridad del firmware antes de actualización; R.AVMS-11
+
+R.DT-1; La medición de temperatura debe tener una precisión mínima de +- 0.5 grados Celcius en el rango de 10 grados Celcius a 60 grados Celcius;R.AVMS-1
+R.DT-2; La medición de temperatura debe tener una resolución de al menos 0.1 grados Celcius;R.AVMS-1
+R.DT-3; El sensor deberá tener un tiempo de respuesta térmica menor a 10 segundos; R.AVMS-1
+R.DT-4; El sensor deberá estar calibrado contra un patrón trazable a normas internacionales (ISO/NIST); R.AVMS-1
+R.DT-5; El sensor deberá contar con protección contra radiación solar directa (pantalla o encapsulado); R.AVMS-1
+R.DT-6; El sensor deberá ser compatible con el sistema de adquisición de datos del CPU; R.AVMS-1, R.CPU-3
+R.DT-7; El sensor deberá tener protección ambiental contra lluvia y polvo; R.AVMS-8, R.AVMS-10
+
+R.GB-1; La medición de temperatura de globo deberá tener una precisión mínima de +- 0.5 grados Celcius en el rango de 10 °C a 60 °C; R.AVMS-2
+R.GB-2; La medición de temperatura de globo deberá tener una resolución de al menos 0.1 grados Celcius; R.AVMS-2
+R.GB-3; El sensor deberá tener un tiempo de respuesta térmica menor a 20 segundos; R.AVMS-2
+R.GB-4; El sensor deberá estar calibrado contra un patrón trazable a normas internacionales (ISO/NIST); R.AVMS-2
+R.GB-5; El sensor deberá estar montado dentro de un globo negro, acorde a ISO 7243; R.AVMS-2
+R.GB-6; El sensor deberá ser compatible con el sistema de adquisición de datos del CPU; R.AVMS-2, R.CPU-3
+R.GB-7; El sensor deberá tener protección ambiental contra polvo y lluvia; R.AVMS-8, R.AVMS-10
+
+R.UV-1; El sensor deberá medir radiación ultravioleta en el rango de 280 nm a 400 nm (UV-A y UV-B); R.AVMS-3
+R.UV-2; La medición de radiación UV deberá tener una precisión mínima de +- 5 % respecto a un patrón de referencia; R.AVMS-3
+R.UV-3; El sensor deberá tener una resolución mínima de 0.1 mW/cm^2; R.AVMS-3
+R.UV-4; El sensor deberá estar calibrado contra un patrón trazable a normas internacionales (ISO/NIST); R.AVMS-3
+R.UV-5; El sensor deberá contar con protección óptica para evitar saturación por radiación solar directa; R.AVMS-3
+R.UV-6; El sensor deberá ser compatible con el sistema de adquisición de datos del CPU; R.AVMS-3, R.CPU-3
+R.UV-7; El sensor deberá tener encapsulado con protección ambiental contra polvo y lluvia; R.AVMS-8, R.AVMS-10
+
+R.WS-1; El sensor deberá medir velocidad del viento en el rango de 0.3 m/s a 20 m/s; R.AVMS-3
+R.WS-2; La medición de velocidad del viento deberá tener una precisión mínima de +- 0.3 m/s; R.AVMS-3
+R.WS-3; El sensor deberá tener una resolución mínima de 0.1 m/s; R.AVMS-3
+R.WS-4; El sensor deberá estar calibrado contra un patrón trazable a normas internacionales (ISO/NIST); R.AVMS-3
+R.WS-5; El sensor deberá tener un tiempo de respuesta menor a 30 segundos; R.AVMS-3
+R.WS-6; El sensor deberá ser compatible con el sistema de adquisición de datos del CPU; R.AVMS-3, R.CPU-3
+R.WS-7; El sensor deberá tener encapsulado con protección ambiental contra polvo e insectos; R.AVMS-8, R.AVMS-10
+R.WS-8; El sensor deberá contar con carcasa protectora y drenaje que asegure resistencia a lluvia y condensación, manteniendo la precisión de la medición; R.AVMS-10
+
+R.STR-1; La estructura deberá permitir instalar los sensores de medición a la altura especificada por ISO 7243 (1.1 m a 1.7 m sobre el suelo); R.AVMS-12
+R.STR-2; La estructura deberá contar con soporte superior para el sensor UV y el panel solar; R.AVMS-12, R.AVMS-6
+R.STR-3; La estructura deberá ser resistente a condiciones ambientales exteriores (humedad, lluvia, viento); R.AVMS-10
+R.STR-4; La estructura deberá estar fabricada con materiales anticorrosivos (ej. aluminio anodizado, acero inoxidable, polímeros técnicos); R.AVMS-10
+R.STR-5; La estructura deberá tener estabilidad mecánica suficiente para soportar ráfagas de viento de hasta 20 m/s sin comprometer la medición; R.AVMS-3, R.AVMS-10
+R.STR-6; La estructura deberá permitir montaje y desmontaje modular para facilitar transporte y mantenimiento; R.AVMS-12
+R.STR-7; La estructura deberá contar con protección IP65 en puntos de conexión eléctrica (panel solar, CPU, sensores); R.AVMS-8, R.AVMS-10
+
+R.SDPS-1;El servidor en la nube deberá poder manejar múltiples dispositivos y grandes volúmenes de datos sin degradar el rendimiento.;R.SH-4
+R.SDPS-2;Los datos almacenados deberán ser accesibles desde cualquier ubicación autorizada, con credenciales de usuario;R.SH-4
+R.SDPS-3;La base de datos en la nube deberá poder recibir datos de sistemas embebidos IoT a través de MQTT;R.SH-4
+R.SDPS-4;La base de datos en la nube deberá poder enviar datos cuando un servidor lo solicite;R.SH-4
+R.SDPS-6;El sistema deberá poder realizar cálculos matemáticos con ecuaciones polinomiales de varias variables; R.SH-1, R.SH-2, R.SH-3
+R.SDPS-7;El sistema deberá poder almacenar los resultados de las operaciones matemáticas realizadas, asociadas con los resultados de los índices de estrés térmico; R.SH-1, R.SH-2, R.SH-3
+
+R.UICS-1; El sistema deberá generar alertas a través del software de monitoreo de condiciones ambientales, cuando los índices de estrés térmico que calcule el sistema, excedan un límite dado.;R.SH-7
+R.UICS-2; El sistema deberá comparar continuamente los valores calculados con los umbrales definidos.;R.SH-7
+R.UICS-3; El sistema deberá emitir una alerta cuando se exceda un límite, en tiempo real.;R.SH-7
+R.UICS-4; El sistema deberá soportar diferentes modalidades de alerta (visual en pantalla, sonora, notificación en la nube y por correo).;R.SH-7
+R.UICS-5; El sistema deberá almacenar un historial de alertas generadas, con fecha, hora y valor del índice.;R.SH-7
+R.UICS-6; El sistema deberá permitir ajustar la severidad de las alertas (ej. advertencia, crítico).;R.SH-11
+R.UICS-7; El sistema deberá permitir la actualización del software desde ubicaciones remotas, con protocolos de seguridad (autenticación, cifrado).;R.SH-11
+R.UICS-8; El sistema deberá garantizar que las actualizaciones no afecten la integridad de los datos almacenados ni la configuración previa.;R.SH-11
+R.UICS-9; El sistema deberá contar con un procedimiento para revertir la actualización en caso de fallo.;R.SH-11
+R.UICS-10; El sistema deberá informar al usuario cuando una actualización esté disponible y cuando se haya completado.;R.SH-11
+R.UICS-11; El sistema deberá minimizar el tiempo de inactividad durante el proceso de actualización.;R.SH-11
+R.UICS-12; El sistema deberá mantener un historial de versiones del software y actualizaciones aplicadas.
