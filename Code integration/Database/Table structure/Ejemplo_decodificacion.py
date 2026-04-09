@@ -78,7 +78,7 @@ def decode_frame(frame_hex):
     }
 
 # --- Flujo principal ---
-query = f'from(bucket:"{bucket_src}") |> range(start: -15m) |> filter(fn: (r) => r["_field"] == "frame_hex")'
+query = f'from(bucket:"{bucket_src}") |> range(start: -30d) |> filter(fn: (r) => r["_field"] == "frame_hex")'
 tables = query_api.query(query)
 
 # Preguntar al usuario si desea guardar en InfluxDB
@@ -87,6 +87,11 @@ guardar = input("¿Desea guardar las mediciones decodificadas en InfluxDB? (s/n)
 for table in tables:
     for record in table.records:
         frame_hex = record.get_value()
+        buf = bytearray(binascii.unhexlify(frame_hex))
+
+        # --- Depuración: mostrar longitud y últimos bytes ---
+        print(f"Frame len={len(buf)} bytes, últimos 5 bytes: {[hex(b) for b in buf[-5:]]}")
+
         try:
             data = decode_frame(frame_hex)
             print("✅ Frame decodificado:", data)
@@ -97,7 +102,7 @@ for table in tables:
                     p.field(k, v)
                 write_api.write(bucket=bucket_dst, org=org, record=p)
         except Exception as e:
-            print(f"⚠️ Frame inválido: {e}. Hex: {frame_hex[:20]}...")
+            print(f"⚠️ Frame inválido: {e}. Último byte real: {hex(buf[-1])}")
 
 if guardar:
     print("Frames decodificados y escritos en bucket destino.")
