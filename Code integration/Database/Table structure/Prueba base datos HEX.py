@@ -3,7 +3,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 
 # --- Configuración InfluxDB ---
 url = "https://us-east-1-1.aws.cloud2.influxdata.com"
-token = "Tu_Token"
+token = "CL5c_fRaGa-qPdP3HNDL0u2SFKBb9JKAb_0qte8-fywJlGx3n7Ic9mY9rxh1i75wHaSobUY0tHiTRorKFzxvpQ=="
 org = "HEMS"
 bucket = "pruebas"
 
@@ -13,11 +13,11 @@ write_api = client.write_api(write_options=SYNCHRONOUS)
 # --- Frames simulados con valores típicos de una finca de caña ---
 frame_hex_samples = [
     # Frame 1: mañana fresca, humedad alta
-    "DD000186A00A00FA0B1E0C0F0D320E640F960123456701F4025804E805DC07D001F4012C000000011F77",
+    "DD000186A00A00FA0B1E0C0F0D320E640F960123456701F4025804E805DC07D001F4012C000F77",
     # Frame 2: mediodía, más calor y radiación UV
-    "DD000187000A01900B280C140D300E960FA001234567020804B0050005F0082C01F4012C000000011F77",
+    "DD000187000A01900B280C140D300E960FA001234567020804B0050005F0082C01F4012C000F77",
     # Frame 3: tarde, temperatura máxima, energía acumulada mayor
-    "DD000187600A01F40B320C190D2D0EB00FC801234567021005DC05DC0600086401F4012C000000011F77"
+    "DD000187600A01F40B320C190D2D0EB00FC801234567021005DC05DC0600086401F4012C000F77"
 ]
 
 # --- Enviar frames simulados ---
