@@ -3,7 +3,7 @@ from influxdb_client.client.write_api import SYNCHRONOUS
 
 # --- Configuración InfluxDB ---
 url = "https://us-east-1-1.aws.cloud2.influxdata.com"
-token = "CL5c_fRaGa-qPdP3HNDL0u2SFKBb9JKAb_0qte8-fywJlGx3n7Ic9mY9rxh1i75wHaSobUY0tHiTRorKFzxvpQ=="
+token = ""
 org = "HEMS"
 bucket = "pruebas"
 
@@ -17,7 +17,12 @@ frame_hex_samples = [
     # Frame 2: mediodía, más calor y radiación UV
     "DD000187000A01900B280C140D300E960FA001234567020804B0050005F0082C01F4012C000F77",
     # Frame 3: tarde, temperatura máxima, energía acumulada mayor
-    "DD000187600A01F40B320C190D2D0EB00FC801234567021005DC05DC0600086401F4012C000F77"
+    "DD000187600A01F40B320C190D2D0EB00FC801234567021005DC05DC0600086401F4012C000F77",
+    #Frame con valores en tabla:
+    "DD000186A009C417700960138800030002000109C427921B5801F404B01D4C75300000000F0077",
+    #Frame nuevo:
+    "DD203A0800980980159A0972157B002D000A00CE098D27E015F20135047017D2040000001F0077"
+
 ]
 
 # --- Enviar frames simulados ---

@@ -20,52 +20,71 @@ def get32(buf, pos):
     return (buf[pos] << 24) | (buf[pos+1] << 16) | (buf[pos+2] << 8) | buf[pos+3]
 
 # --- Decodificación ---
+
 def decode_frame(frame_hex):
     buf = bytearray(binascii.unhexlify(frame_hex))
     pos = 0
 
-    # ✅ Solo aceptar frames de 39 bytes exactos
     if len(buf) != 39:
         raise ValueError(f"Frame inválido: longitud {len(buf)} bytes, se esperaban 39")
 
     if buf[pos] != 0xDD:
         raise ValueError("Start byte inválido")
+    print(f"Start byte: {hex(buf[pos])}")
     pos += 1
 
-    # Timestamp (4 bytes, sin escala)
+    # Timestamp
     timestamp_ms = get32(buf, pos); pos += 4
-
+    print(f"Timestamp_ms: {timestamp_ms}")
+    
     # SHT1 y SHT2
     sht1T = get16(buf, pos) / 100.0; pos += 2
+    print(f"SHT1 Temp: {sht1T:.2f} °C")
     sht1RH = get16(buf, pos) / 100.0; pos += 2
+    print(f"SHT1 RH: {sht1RH:.2f} %")
     sht2T = get16(buf, pos) / 100.0; pos += 2
+    print(f"SHT2 Temp: {sht2T:.2f} °C")
     sht2RH = get16(buf, pos) / 100.0; pos += 2
+    print(f"SHT2 RH: {sht2RH:.2f} %")
 
-    # UV (÷1000)
+    # UV
     uvA = get16(buf, pos) / 1000.0; pos += 2
+    print(f"UV A: {uvA:.3f}")
     uvB = get16(buf, pos) / 1000.0; pos += 2
+    print(f"UV B: {uvB:.3f}")
     uvC = get16(buf, pos) / 1000.0; pos += 2
+    print(f"UV C: {uvC:.3f}")
 
     # Entorno
     envT = get16(buf, pos) / 100.0; pos += 2
+    print(f"Env Temp: {envT:.2f} °C")
     envP_hPa = get16(buf, pos) / 10.0; pos += 2
+    print(f"Env Pressure: {envP_hPa:.2f} hPa")
     envRH = get16(buf, pos) / 100.0; pos += 2
+    print(f"Env RH: {envRH:.2f} %")
 
     # INA
     inaV = get16(buf, pos) / 100.0; pos += 2
+    print(f"INA Vbus: {inaV:.2f} V")
     inaI = get16(buf, pos) / 10.0; pos += 2
+    print(f"INA Current: {inaI:.1f} mA")
     inaP = get16(buf, pos) / 10.0; pos += 2
+    print(f"INA Power: {inaP:.1f} mW")
 
-    # Energía acumulada (÷100)
+    # Energía acumulada
     energy_mWh = get32(buf, pos) / 100.0; pos += 4
+    print(f"Energy: {energy_mWh:.2f} mWh")
 
     # Flags
     overCurrent = buf[pos]; pos += 1
-    okFlags = get16(buf, pos); pos += 2
-
+    print(f"OverCurrent flag: {overCurrent}")
+    okFlags = buf[pos]; pos += 2
+    print(f"Sensor OK flags: {okFlags}")
+    
     # Stop byte
     if buf[pos] != 0x77:
         raise ValueError("Stop byte inválido")
+    print(f"Stop byte: {hex(buf[pos])}")
 
     return {
         "timestamp_ms": timestamp_ms,
@@ -78,6 +97,7 @@ def decode_frame(frame_hex):
         "overCurrent": overCurrent,
         "okFlags": okFlags
     }
+
 
 
 # --- Flujo principal ---
