@@ -26,6 +26,7 @@
 #include <WiFi.h>
 #include <time.h>
 #include <LiquidCrystal_I2C.h>
+#include <PubSubClient.h>
 
 // ----- SHT31 -----
 #include "Adafruit_SHT31.h"
@@ -57,8 +58,8 @@
 #define AS7331_I2C_ADDRESS 0x74
 
 // ---------- WiFi ----------
-const char* ssid     = "xxxxxxxxxx";
-const char* password = "xxxxxxxxxx";
+const char* ssid     = "Bendicion7";
+const char* password = "ebnn9687*";
 
 // ---------- Objects ----------
 Adafruit_SHT31 sht1 = Adafruit_SHT31();
@@ -275,12 +276,6 @@ void loop() {
     sht1OK = (!isnan(sht1T) && !isnan(sht1RH));
   }
 
-  // Mostrar en LCD
-  lcd.setCursor(0,1);   // Segunda línea
-  lcd.print("Temperatura: ");
-  lcd.print(sht1T, 2);  // Imprime con 2 decimales
-  lcd.print(" C");
-
   // ---- SHT31 #2 ----
   float sht2T = NAN, sht2RH = NAN;
   bool sht2OK = false;
@@ -362,6 +357,13 @@ if (haveINA) {
   }
   lastEnergyUpdate = nowEnergy;
 }
+
+  // Mostrar en LCD
+  lcd.setCursor(0,1);   // Segunda línea
+  lcd.print("Tension: ");
+  lcd.print(inaV, 2);  // Imprime con 2 decimales
+  lcd.print(" V");
+
 
   // ---- Flags ----
   uint16_t okFlags = 0;
