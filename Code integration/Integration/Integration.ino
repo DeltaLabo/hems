@@ -26,7 +26,7 @@
 #include <WiFi.h>
 #include <time.h>
 #include <LiquidCrystal_I2C.h>
-#include <PubSubClient.h>
+//#include <PubSubClient.h>
 
 // ----- SHT31 -----
 #include "Adafruit_SHT31.h"
@@ -363,7 +363,6 @@ if (haveINA) {
   lcd.print("Tension: ");
   lcd.print(inaV, 2);  // Imprime con 2 decimales
   lcd.print(" V");
-
 
   // ---- Flags ----
   uint16_t okFlags = 0;
