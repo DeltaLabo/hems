@@ -3,7 +3,7 @@ import binascii
 
 # --- Configuración InfluxDB ---
 url = "https://us-east-1-1.aws.cloud2.influxdata.com"
-token = "CL5c_fRaGa-qPdP3HNDL0u2SFKBb9JKAb_0qte8-fywJlGx3n7Ic9mY9rxh1i75wHaSobUY0tHiTRorKFzxvpQ=="
+token = ""
 org = "HEMS"
 bucket_src = "pruebas"
 bucket_dst = "mediciones_decodificadas"
