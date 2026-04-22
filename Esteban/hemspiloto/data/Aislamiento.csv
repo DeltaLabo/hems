@@ -1,0 +1,16 @@
+"Ropa de trabajo","clo","m²·K/W"
+"Ropa interior, overol, calcetines, zapatos",0.70,0.110
+"Ropa interior, camisa, pantalón, calcetines, zapatos",0.75,0.115
+"Ropa interior, camisa, overol, calcetines, zapatos",0.80,0.125
+"Ropa interior, camisa, pantalón, chaqueta, calcetines, zapatos",0.85,0.135
+"Ropa interior, camisa, pantalón, bata, calcetines, zapatos",0.90,0.140
+"Ropa interior con mangas y piernas cortas, camisa, pantalón, chaqueta, calcetines, zapatos",1.00,0.155
+"Ropa interior con mangas y piernas cortas, camisa, pantalón, overol, calcetines, zapatos",1.10,0.170
+"Ropa interior con mangas y piernas largas, chaqueta térmica, pantalón, calcetines, zapatos",1.20,0.185
+"Ropa interior con mangas y piernas cortas, camisa, pantalón, chaqueta y chaqueta térmica, calcetines, zapatos",1.25,0.190
+"Ropa interior con mangas y piernas cortas, overol, chaqueta térmica y pantalón exterior, calcetines, zapatos",1.40,0.220
+"Ropa interior con mangas y piernas cortas, camisa, pantalón, chaqueta, chaqueta térmica y pantalón exterior, calcetines, zapatos",1.55,0.225
+"Ropa interior con mangas y piernas cortas, camisa, pantalón, chaqueta, abrigo acolchado y overol, calcetines, zapatos",1.85,0.285
+"Ropa interior con mangas y piernas cortas, camisa, pantalón, chaqueta, abrigo acolchado y overol, calcetines, zapatos, gorro, guantes",2.00,0.310
+"Ropa interior con mangas y piernas largas, chaqueta térmica y pantalón térmico, calcetines, zapatos",2.20,0.340
+"Ropa interior con mangas y piernas largas, chaqueta térmica y pantalón térmico, parka con forro grueso, abrigo acolchado y pantalón exterior acolchado, calcetines, zapatos, gorro, guantes",2.55,0.395

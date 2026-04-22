@@ -1,0 +1,16 @@
+"Ropa diaria",clo,m^2*K*W^-1
+"Pantalones, camiseta, shorts, calcetines ligeros, sandalias",0.3,0.08
+"Pantalones, enagua, medias, vestido ligero con mangas, sandalias",0.45,0.07
+"Calzoncillos, camisa con mangas cortas, pantalones ligeros, calcetines ligeros, zapatos",0.5,0.08
+"Pantalones, medias, camisa con mangas cortas, falda, sandalias",0.55,0.085
+"Calzoncillos, camisa, pantalones ligeros, calcetines, zapatos",0.6,0.095
+"Pantalones, enagua, medias, vestido, zapatos",0.7,0.105
+"Ropa interior, camisa, pantalones, calcetines, zapatos",0.7,0.11
+"Ropa interior, traje deportivo (sueter y pantalones), medias largas, zapatillas",0.75,0.115
+"Pantalones, enagua, camisa, falda, medias gruesas, zapatos",0.8,0.12
+"Pantalones, camisa, sueter de cuello redondo, medias gruesas, zapatos",0.9,0.14
+"Calzoncillos, camiseta sin mangas con mangas cortas, camisa, pantalones, sueter de cuello V, calcetines, zapatos",0.95,0.145
+"Pantalones, camisa, pantalones, chaqueta, calcetines, zapatos",1,0.155
+"Pantalones, medias, camisa, falda, chaleco, chaqueta",1,0.155
+"Pantalones, medias, blusa, falda larga, chaqueta, zapatos",1.1,0.17
+"Ropa interior, camiseta sin mangas con mangas cortas, camisa, pantalones, chaqueta, calcetines, zapatos",1.1,0.17

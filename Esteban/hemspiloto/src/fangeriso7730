@@ -1,0 +1,97 @@
+import math
+
+def fanger(iclo, carga_metabolica, trabajo, temperatura_aire, temp_radiante_media, vel, humedad_relativa=None, pa=None):
+    """
+    Cálculo del PMV y PPD según ISO 7730
+    Parámetros:
+        iclo : aislamiento de la ropa (clo)
+        carga_metabolica : tasa metabólica (met)
+        trabajo : trabajo externo (met)
+        temperatura_aire  : temperatura del aire (°C)
+        temp_radiante_media : temperatura radiante media (°C)
+        vel : velocidad del aire (m/s)
+        humedad_relativa  : humedad relativa (%) (opcional si se da pa)
+        pa  : presión parcial de vapor de agua (Pa) (opcional si se da rh)
+    """
+
+    # Presión de vapor saturado (Pa)
+    def fnps(t):
+        return math.exp(16.6536 - 4030.183 / (t + 235))
+
+    if pa is None:
+        pa = humedad_relativa * 10 * fnps(temperatura_aire)
+
+    iclo = 0.155 * iclo
+    carga_metabolica = carga_metabolica * 58.15
+    w = trabajo * 58.15
+    mw = carga_metabolica - w
+
+ #Factor iclo Fanger
+    if iclo <= 0.078:
+        fclo = 1 + 1.29 * iclo
+    else:
+        fclo = 1.05 + 0.645 * iclo
+
+    hcf = 12.1 * math.sqrt(vel)
+    temperatura_aireK = temperatura_aire + 273 #Temperatura del aire en Kelvin
+    temp_radiante_mediaK = temp_radiante_media + 273 #Temperatura radiante media en Kelvin
+
+    # Estimación inicial de tclo
+    tcla = temperatura_aireK + (35.5 - temperatura_aire) / (3.5 * iclo+ 0.1)
+    #Constantes de iteración
+    p1 = iclo * fclo
+    p2 = p1 * 3.96
+    p3 = p1 * 100
+    p4 = p1 * temperatura_aireK
+    p5 = 308.7 - 0.028 * mw + p2 * ((temp_radiante_mediaK / 100) ** 4)
+
+    xn = tcla / 100
+    xf = xn
+    criterio_parada = 0.00015 #Criterio de parada
+
+    n = 0 #Cantidad de iteraciones
+    while True:
+        xf = (xf + xn) / 2
+        hcn = 2.38 * abs(100 * xf - temperatura_aireK) ** 0.25
+         #Coeficiente de transferencia por convección forzada
+        hc = max(hcf, hcn)
+        xn = (p5 + p4 * hc - p2 * xf**4) / (100 + p3 * hc)
+        n += 1
+        if n > 150:
+            return None, None
+        if abs(xn - xf) <= criterio_parada:
+            break
+
+    tcl = 100 * xn - 273
+
+   #Expresiones ecuación balance térmico
+    hl1 = 3.05 * 0.001 * (5733 - 6.99 * mw - pa) #
+    hl2 = 0.42 * (mw - 58.15) if mw > 58.15 else 0
+    hl3 = 1.7 * 0.00001 * carga_metabolica * (5867 - pa)
+    hl4 = 0.0014 * carga_metabolica * (34 - temperatura_aire)
+    hl5 = 3.96 * fclo * (xn**4 - (temp_radiante_mediaK / 100) ** 4)
+    hl6 = fclo * hc * (tcl - temperatura_aire)
+
+    ts = 0.303 * math.exp(-0.036 * carga_metabolica) + 0.028
+    pmv = ts * (mw - hl1 - hl2 - hl3 - hl4 - hl5 - hl6)
+    ppd = 100 - 95 * math.exp(-0.03353 * pmv**4 - 0.2179 * pmv**2)
+
+    return round(pmv, 3), round(ppd, 1)
+
+
+# ===============================
+# EJEMPLO (igual al del Anexo D)
+# ===============================
+
+pmv, ppd = fanger(
+    iclo=1.0,
+    carga_metabolica=1.2,
+    trabajo=0,
+    temperatura_aire=19.0,
+    temp_radiante_media=18.0,
+    vel=0.1,
+    humedad_relativa=40
+)
+
+print("PMV:", pmv)
+print("PPD:", ppd)
