@@ -8,18 +8,13 @@ const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 const int btnUp = 6;
 const int btnDown = 7;
 const int btnOK = 8;
-
 int ciclos = 0;
 int contador = 0;
 int base = 100;
 int mult = 3;
 
-float tensionVT = 0;
-float tensionVC = 0;
-
-float temperaturaVT = 0;
-float temperaturaVC = 60.0;  // setpoint inicial en °C
-float Tmax = 73.28 * 2.4 + 12.518;  // ≈ 188.4 °C
+float tensionVT = 0; //medicion
+float tensionVC = 0.6; //setpoint
 float delta = 0;
 float Vref = 5.0;
 int valorDAC = 0;
@@ -28,14 +23,6 @@ bool calentando = false;
 bool modoAjuste = false;
 
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
-
-float tensionATemperatura(float V) {
-  return 73.28 * V + 12.518;
-}
-
-float temperaturaATension(float T) {
-  return (T - 12.518) / 73.28;
-}
 
 void setup() {
   Serial.begin(9600);
@@ -61,31 +48,28 @@ void loop() {
   int medicionVT = analogRead(VT);
   tensionVT = medicionVT * 5.0 / 1023.0;
 
-  temperaturaVT = tensionATemperatura(tensionVT);
-
-  tensionVC = temperaturaATension(temperaturaVC);
-
-  if (tensionVC < 0) tensionVC = 0;
-  if (tensionVC > Vref) tensionVC = Vref;
-
   valorDAC = (tensionVC / Vref) * 4095;
 
-  delta = (temperaturaVC - temperaturaVT) / 175.0;
+  delta = (tensionVC - tensionVT)/2.4;  
   if (delta < 0) delta = 0;
 
   ciclos = delta * base * mult;
-
-  if (contador <= ciclos) {
+  
+  if(contador <= ciclos) {
     calentando = true;
-  } else {
-    calentando = false;
-  }
+  }else calentando = false;
+  
+  
+  if(contador >= base) contador = 0;
+  else contador += 1;
+  
+  // if (calentando && tensionVT >= tensionVC * 0.70) {
+  //   calentando = false;
+  // }
 
-  if (contador >= base) {
-    contador = 0;
-  } else {
-    contador += 1;
-  }
+  // if (!calentando && tensionVT <= tensionVC * 0.50) {
+  //   calentando = true;
+  // }
 
   if (calentando) {
     analogWrite(DAC_output, valorDAC);
@@ -106,14 +90,14 @@ void leerBotones() {
 
   if (modoAjuste) {
     if (digitalRead(btnUp) == LOW) {
-      temperaturaVC += 1.0;
-      if (temperaturaVC > Tmax) temperaturaVC = Tmax;
+      tensionVC += 0.05;
+      if (tensionVC > 5.0) tensionVC = 5.0;
       delay(200);
     }
 
     if (digitalRead(btnDown) == LOW) {
-      temperaturaVC -= 1.0;
-      if (temperaturaVC < 0.0) temperaturaVC = 0.0;
+      tensionVC -= 0.05;
+      if (tensionVC < 0.0) tensionVC = 0.0;
       delay(200);
     }
   }
@@ -121,9 +105,9 @@ void leerBotones() {
 
 void mostrarDatos() {
   lcd.setCursor(0, 0);
-  lcd.print("TC=");
-  lcd.print(temperaturaVC, 1);
-  lcd.print("C ");
+  lcd.print("VC=");
+  lcd.print(tensionVC, 2);
+  lcd.print("V ");
 
   if (modoAjuste) {
     lcd.print("SET");
@@ -132,15 +116,15 @@ void mostrarDatos() {
   }
 
   lcd.setCursor(0, 1);
-  lcd.print("TE=");
-  lcd.print(temperaturaVT, 1);
-  lcd.print("C       ");
+  lcd.print("VT=");
+  lcd.print(tensionVT, 2);
+  lcd.print("V       ");
 
-  Serial.print("TC = ");
-  Serial.print(temperaturaVC, 1);
-  Serial.print(" C | TE = ");
-  Serial.print(temperaturaVT, 1);
-  Serial.print(" C | Estado = ");
+  Serial.print("VC = ");
+  Serial.print(tensionVC, 2);
+  Serial.print(" V | VT = ");
+  Serial.print(tensionVT, 2);
+  Serial.print(" V | Estado = ");
   Serial.print(calentando ? "CALENTANDO" : "APAGADO");
   Serial.print(" | Modo = ");
   Serial.print(modoAjuste ? "AJUSTE" : "CONTROL");
