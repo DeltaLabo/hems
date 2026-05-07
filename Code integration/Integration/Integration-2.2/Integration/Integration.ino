@@ -28,6 +28,21 @@
 #include <LiquidCrystal_I2C.h>
 //#include <PubSubClient.h>
 
+#include "ThingSpeak.h"
+
+unsigned long myChannelNumber = 3355700;
+const char * myWriteAPIKey = "W1Y7D3C7TBU7BN4Y";
+
+WiFiClient client;
+
+//#include <InfluxDbClient.h>
+//#include <InfluxDbCloud.h>
+
+//#define INFLUXDB_URL "https://us-east-1-1.aws.cloud2.influxdata.com"
+//#define INFLUXDB_TOKEN "CL5c_fRaGa-qPdP3HNDL0u2SFKBb9JKAb_0qte8-fywJlGx3n7Ic9mY9rxh1i75wHaSobUY0tHiTRorKFzxvpQ=="
+//#define INFLUXDB_ORG "HEMS"
+//#define INFLUXDB_BUCKET "pruebas"
+
 // ----- SHT31 -----
 #include "Adafruit_SHT31.h"
 
@@ -58,8 +73,8 @@
 #define AS7331_I2C_ADDRESS 0x74
 
 // ---------- WiFi ----------
-const char* ssid     = "Bendicion7";
-const char* password = "ebnn9687*";
+const char* ssid     = "LaboratorioDelta";
+const char* password = "labdelta21!";
 
 // ---------- Objects ----------
 Adafruit_SHT31 sht1 = Adafruit_SHT31();
@@ -71,6 +86,9 @@ Adafruit_INA219 ina219;
 
 // Dirección típica del módulo I2C: 0x27 o 0x3F
 LiquidCrystal_I2C lcd(0x27, 20, 4);
+
+//InfluxDBClient client(INFLUXDB_URL, INFLUXDB_ORG, INFLUXDB_BUCKET, INFLUXDB_TOKEN, InfluxDbCloud2CACert);
+//Point sensorData("mediciones");
 
 SdFat sd;
 SdFile file;
@@ -166,6 +184,34 @@ void appendCSV(String datetime, uint32_t t_ms,
   }
 }
 
+String floatToHex(float valor, int escala = 100) {
+  
+  if (isnan(valor)){
+    valor = 0.0;
+  }
+  
+  int entero = (int)(valor * escala);   // Escala para conservar decimales
+  char buffer[10];
+  sprintf(buffer, "%X", entero);        // Convierte a HEX
+  return String(buffer);
+}
+
+// ---- CRC16 (polinomio 0x8005, inicial 0xFFFF) ----
+uint16_t crc16(const uint8_t *data, size_t length) {
+  uint16_t crc = 0xFFFF;
+  for (size_t i = 0; i < length; i++) {
+    crc ^= (uint16_t)data[i] << 8;
+    for (uint8_t j = 0; j < 8; j++) {
+      if (crc & 0x8000) {
+        crc = (crc << 1) ^ 0x8005;
+      } else {
+        crc <<= 1;
+      }
+    }
+  }
+  return crc;
+}
+
 // ---------- Setup ----------
 void setup() {
   Serial.begin(115200);
@@ -254,6 +300,8 @@ void setup() {
   initSD();
 
   lastEnergyUpdate = millis();
+
+  ThingSpeak.begin(client);
 }
 
 uint32_t lastPrint = 0;
@@ -287,6 +335,8 @@ void loop() {
 
   // ---- AS7331 UV ----
   float uvA = NAN, uvB = NAN, uvC = NAN;
+  float uvTotal = NAN;
+
   bool uvOK = false;
   if (haveUV) {
     bool ready = false;
@@ -299,6 +349,7 @@ void loop() {
       uvA = uv.getUVA_uW();
       uvB = uv.getUVB_uW();
       uvC = uv.getUVC_uW();
+      uvTotal = uvA+uvB;
       uvOK = true;
       uv.startMeasurement();
     }
@@ -360,9 +411,17 @@ if (haveINA) {
 
   // Mostrar en LCD
   lcd.setCursor(0,1);   // Segunda línea
+  lcd.print("Temperatura: ");
+  lcd.print(sht1T, 2);  // Imprime con 2 decimales
+  lcd.print(" C");
+  lcd.setCursor(0,2);   // Segunda línea
   lcd.print("Tension: ");
   lcd.print(inaV, 2);  // Imprime con 2 decimales
   lcd.print(" V");
+  lcd.setCursor(0,3);   // Segunda línea
+  lcd.print("Corriente: ");
+  lcd.print(inaI, 2);  // Imprime con 2 decimales
+  lcd.print(" mA");  
 
   // ---- Flags ----
   uint16_t okFlags = 0;
@@ -401,4 +460,87 @@ if (haveINA) {
             inaV, inaI, inaP,
             energy_mWh, overCurrent,
             okFlags);
+
+
+  //sensorData.clearFields();
+  //sensorData.addField("sht1_T", sht1T);
+  //sensorData.addField("sht1_RH", sht1RH);
+  //sensorData.addField("sht2_T", sht2T);
+  //sensorData.addField("sht2_RH", sht2RH);
+
+  //sensorData.addField("uvA", uvA);
+  //sensorData.addField("uvB", uvB);
+  //sensorData.addField("uvC", uvC);
+
+  //sensorData.addField("env_T", envT);
+  //sensorData.addField("env_P", envP_hPa);
+  //sensorData.addField("env_RH", envRH);
+
+  //sensorData.addField("ina_Vbus", inaV);
+  //sensorData.addField("ina_current_mA", inaI);
+  //sensorData.addField("ina_power_mW", inaP);
+  //sensorData.addField("energy_mWh", energy_mWh);
+  //sensorData.addField("overcurrent_flag", overCurrent ? 1 : 0);
+  //sensorData.addField("sensor_ok_flags", okFlags);
+
+  //if (!client.writePoint(sensorData)) {
+  //  Serial.print("InfluxDB write failed: ");
+  //  Serial.println(client.getLastErrorMessage());
+  //}
+  
+  String hex_sht1T   = floatToHex(sht1T, 100);   // Temperatura *100
+  String hex_sht1RH  = floatToHex(sht1RH, 100);
+  String hex_sht2T   = floatToHex(sht2T, 100);
+  String hex_sht2RH  = floatToHex(sht2RH, 100);
+  String hex_uvA     = floatToHex(uvA, 1000);
+  String hex_uvB     = floatToHex(uvB, 1000);
+  String hex_uvC     = floatToHex(uvC, 1000);
+  String hex_envT    = floatToHex(envT, 100);
+  String hex_envP    = floatToHex(envP_hPa, 10);
+  String hex_envRH   = floatToHex(envRH, 100);
+  String hex_inaV    = floatToHex(inaV, 100);
+  String hex_inaI    = floatToHex(inaI, 10);
+  String hex_inaP    = floatToHex(inaP, 10);
+  String hex_inaEneregy    = floatToHex(energy_mWh, 100);
+  String hex_overCurrent   = floatToHex(overCurrent, 1);
+  String hex_okFlags       = floatToHex(okFlags, 1);
+
+  // Unir todo en un solo string largo
+  String payloadHex = hex_sht1T + "," + hex_sht1RH + "," +
+                      hex_sht2T + "," + hex_sht2RH + "," +
+                      hex_uvA   + "," + hex_uvB   + "," + hex_uvC + "," +
+                      hex_envT  + "," + hex_envP  + "," + hex_envRH + "," +
+                      hex_inaV  + "," + hex_inaI  + "," + hex_inaP + "," +
+                      hex_inaEneregy + "," + hex_overCurrent + "," + hex_okFlags;
+
+  //ThingSpeak.setField(1,sht1T);
+  //ThingSpeak.setField(2,sht1RH);
+  //ThingSpeak.setField(3,sht2T);
+  //ThingSpeak.setField(4,inaV);
+  //ThingSpeak.setField(5,inaI);
+  //ThingSpeak.setField(6,envP_hPa);
+  //ThingSpeak.setField(7,uvA);
+  //ThingSpeak.setField(8,uvB);
+
+  uint16_t crc = crc16((const uint8_t*)payloadHex.c_str(), payloadHex.length());
+
+  // Agregar CRC al final del string
+  char crcBuffer[10];
+  sprintf(crcBuffer, "%04X", crc);   // 4 dígitos hex
+  String payloadFinal = payloadHex + ",CRC:" + String(crcBuffer);
+
+  ThingSpeak.setField(8, payloadFinal);
+
+  int httpCode = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
+  
+  if (httpCode == 200) {
+    Serial.println("Channel write successful.");
+    Serial.println(payloadFinal);
+  }
+  else {
+    Serial.println("Problem writing to channel. HTTP error code " + String(httpCode));
+  }
+
+  delay(1000);
+
 }
