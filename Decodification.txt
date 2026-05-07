@@ -1,0 +1,124 @@
+% Enter your MATLAB Code below
+
+function decodePayload(payload)
+
+    if istable(payload)
+        payload = string(payload{1,1});
+    elseif iscell(payload)
+        payload = string(payload{1});
+    else
+        payload = string(payload);
+    end
+
+    % --- Separar datos y CRC ---
+    parts = split(payload, ",CRC:");
+    if numel(parts) < 2
+        disp("⚠️ Payload sin CRC válido");
+        disp(payload);
+        return;
+    end
+    dataStr = parts{1};
+    recvCRC = hex2dec(parts{2});
+
+    % --- Convertir string de datos a bytes ---
+    dataBytes = uint8(dataStr);
+
+    % --- Calcular CRC16 (polinomio 0x8005, init 0xFFFF) ---
+    calcCRC = crc16(dataBytes);
+
+    % --- Validar CRC ---
+    fprintf("CRC recibido: %04X\n", recvCRC);
+    fprintf("CRC calculado: %04X\n", calcCRC);
+    if calcCRC == recvCRC
+        disp("✅ Paquete válido");
+    else
+        disp("❌ Error de CRC, paquete corrupto");
+    end
+
+    % --- Decodificar valores hex individuales ---
+    hexValues = split(dataStr, ",");
+    valores = zeros(1, numel(hexValues));
+    
+    %for i = 1:numel(hexValues)
+    %    valores(i) = hex2dec(hexValues{i});
+    %end
+    
+    for i = 1:numel(hexValues)
+        try
+            if strcmpi(hexValues{i}, "NaN") || isempty(hexValues{i})
+                valores(i) = NaN;   % Mantener como NaN
+            else
+                valores(i) = hex2dec(hexValues{i});
+            end
+        catch
+            valores(i) = NaN;       % Si falla la conversión, asignar NaN
+        end
+    end
+
+    % --- Aplicar escalas inversas ---
+    sht1T       = valores(1) / 100;
+    sht1RH      = valores(2) / 100;
+    sht2T       = valores(3) / 100;
+    sht2RH      = valores(4) / 100;
+    uvA         = valores(5) / 1000;
+    uvB         = valores(6) / 1000;
+    uvC         = valores(7) / 1000;
+    envT        = valores(8) / 100;
+    envP        = valores(9) / 10;
+    envRH       = valores(10) / 100;
+    inaV        = valores(11) / 100;
+    inaI        = valores(12) / 10;
+    inaP        = valores(13) / 10;
+    energy_mWh  = valores(14) / 100;
+    overCurrent = valores(15);   % 0 o 1
+    okFlags     = valores(16);   % bitmask
+
+    % --- Mostrar resultados ---
+    T = table(sht1T, sht1RH, sht2T, sht2RH, uvA, uvB, uvC, ...
+              envT, envP, envRH, inaV, inaI, inaP, ...
+              energy_mWh, overCurrent, okFlags);
+    disp(T);
+end
+
+function crc = crc16(data)
+    poly = hex2dec('8005');
+    crc = hex2dec('FFFF');
+    for b = data
+        crc = bitxor(crc, bitshift(uint16(b), 8));
+        for i = 1:8
+            if bitand(crc, hex2dec('8000'))
+                crc = bitxor(bitshift(crc, 1), poly);
+            else
+                crc = bitshift(crc, 1);
+            end
+            crc = bitand(crc, hex2dec('FFFF')); % limitar a 16 bits
+        end
+    end
+end
+
+%decodePayload("09E6,177C,1122,09C2,1763,1E240,2794,0C80,2710,03E8,07D0,03E8,07D0,04D2,00,1F,CRC:584E");
+
+% --- Configuración del canal ---
+channelID = 3355700;              % Tu canal
+readAPIKey = 'SEB48I2QMFR2TOQ3';   % Reemplaza con tu API Key de lectura
+
+% --- Leer último payload del campo 1 ---
+data = thingSpeakRead(channelID, 'Fields', 8, 'NumPoints', 1, 'ReadKey', readAPIKey,'OutputFormat','table');
+%payload = string(data);
+
+% Extraer el contenido de la celda y convertirlo a string
+
+%for k = 1:height(data)
+%    payload = string(data{k,1});   % extraer celda y convertir a string
+%    decodePayload(payload);
+%end
+
+for k = 1:height(data)
+    payloadStr = string(data{k,2});   % suponiendo que tu payload está en la segunda columna
+    decodePayload(payloadStr);
+end
+
+disp(data);
+
+% --- Decodificar payload ---
+decodePayload(payloadStr);
