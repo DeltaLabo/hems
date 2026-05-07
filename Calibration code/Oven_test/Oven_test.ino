@@ -30,6 +30,8 @@ int medicionVT = 0;   // variable para valor de tensión entre 0 y 1024 (capacid
 float tensionVT = 0;  // valor en volts correspondiente al valor digital medido
 float tensionVC = 0;  // valor en volts para la tensión de control
 float salidaVC = 100; 
+float Vout = 0.6;
+float Vref = 5.0;
 
 void setup() {
   // Se inicia el comando serial:
@@ -46,7 +48,7 @@ void loop() {
 
   medicionVT = analogRead(VT);        //Lee el valor digital de la señal
   tensionVT = medicionVT*5.0/1023.0;  //Se tr
-  tensionVC = 0.6;
+  tensionVC = (Vout / Vref) * 4095;
 
   Serial.print("Tension VC de control= ");
   Serial.println(tensionVC);
@@ -100,4 +102,4 @@ void loop() {
   // converter to settle after the last reading:
 
  
-}
+

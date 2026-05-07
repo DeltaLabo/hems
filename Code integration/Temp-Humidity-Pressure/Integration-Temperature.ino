@@ -54,9 +54,9 @@ void loop() {
   float hum  = sht31.readHumidity();
     //Lectura del sensor 
   if (!isnan(temp) && !isnan(hum)) {
-    Serial.print("🌡️ ");
+    Serial.print(" ");
     Serial.print(temp, 2);
-    Serial.print(" °C, 💧 ");
+    Serial.print(" °C,  ");
     Serial.print(hum, 2);
     Serial.println(" %");
 

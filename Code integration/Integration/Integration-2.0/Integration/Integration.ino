@@ -253,6 +253,16 @@ void setup() {
   }
 
   // ---- INA219 ----
+float m_bus = 1.0158;    // m de Vbus
+float b_bus = -0.09;    //  b de Vbus
+
+float m_curr = 0.9777;   //  m de Corriente
+float b_curr = 6.4103;   //  b de Corriente
+
+float m_shunt = 1.2849;  //  m de Vshunt
+float b_shunt = 3.6019;  //  b de Vshunt
+
+
   haveINA = ina219.begin();
   if (haveINA) {
     Serial.println(F("INA219 OK."));
@@ -337,28 +347,36 @@ bool inaOK = false;
 
 if (haveINA) {
 
-  float sumV = 0, sumI = 0, sumP = 0;
-
+  float sumV = 0, sumI = 0, sumP = 0, sumshunt = 0 ; 
+  
   for (uint8_t i = 0; i < INA_SAMPLES; i++) {
     float v = ina219.getBusVoltage_V();
+    float shunt = ina219.getshuntVoltage_V();
     float i_mA = ina219.getCurrent_mA();
     float p_mW = v * (i_mA / 1000.0) * 1000.0;
 
     sumV += v;
     sumI += i_mA;
     sumP += p_mW;
-
+    sumshunt  += shunt_mV;
     delay(2);  // Pequeño delay para estabilidad
   }
 
-  inaV = sumV / INA_SAMPLES;
-  inaI = sumI / INA_SAMPLES;
-  inaP = sumP / INA_SAMPLES;
-
+  inaV_m = sumV / INA_SAMPLES;
+  inaI_m = sumI / INA_SAMPLES;
+  inaP_m = sumP / INA_SAMPLES;
+  inashunt_m= sumshunt / INA_SAMPLES;
   inaOK = true;
-
+   // 3. APLICAR LA CALIBRACIÓN (y = mx + b)
+   inaV  = (m_bus * inaV_m) + b_bus;
+   inashunt = (m_shunt * inashunt_m) + b_shunt;
+   inaI = (m_curr * inaI_m) + b_curr;
   // ---- Detección de sobrecorriente ----
   overCurrent = (inaI > OVERCURRENT_THRESHOLD_mA);
+  float Vbus_a   = (m_bus * vbus_m) + b_bus;
+  float Vshunt_a = (m_shunt * vshunt_m) + b_shunt;
+  float Current_a = (m_curr * current_m) + b_curr;
+  float Power_a = Vbus_a * Current_a; 
 
   // ---- Energía acumulada ----
   uint32_t nowEnergy = millis();
