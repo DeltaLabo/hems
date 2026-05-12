@@ -184,34 +184,6 @@ void appendCSV(String datetime, uint32_t t_ms,
   }
 }
 
-String floatToHex(float valor, int escala = 100) {
-  
-  if (isnan(valor)){
-    valor = 0.0;
-  }
-  
-  int entero = (int)(valor * escala);   // Escala para conservar decimales
-  char buffer[10];
-  sprintf(buffer, "%X", entero);        // Convierte a HEX
-  return String(buffer);
-}
-
-// ---- CRC16 (polinomio 0x8005, inicial 0xFFFF) ----
-uint16_t crc16(const uint8_t *data, size_t length) {
-  uint16_t crc = 0xFFFF;
-  for (size_t i = 0; i < length; i++) {
-    crc ^= (uint16_t)data[i] << 8;
-    for (uint8_t j = 0; j < 8; j++) {
-      if (crc & 0x8000) {
-        crc = (crc << 1) ^ 0x8005;
-      } else {
-        crc <<= 1;
-      }
-    }
-  }
-  return crc;
-}
-
 // ---------- Setup ----------
 void setup() {
   Serial.begin(115200);
@@ -286,16 +258,7 @@ void setup() {
   } else {
     Serial.println(F("BME/BMP NOT found."));
   }
-  
-  bme.setSampling(
-    Adafruit_BME280::MODE_NORMAL,
-    Adafruit_BME280::SAMPLING_X16,   // Temperatura oversampling x16
-    Adafruit_BME280::SAMPLING_X16,   // Presión oversampling x16
-    Adafruit_BME280::SAMPLING_X16,   // Humedad oversampling x16
-    Adafruit_BME280::FILTER_X16,     // Filtro IIR
-    Adafruit_BME280::STANDBY_MS_0_5  // Tiempo de espera
-  );
-  
+
   // ---- INA219 ----
   haveINA = ina219.begin();
   if (haveINA) {
@@ -328,8 +291,8 @@ void loop() {
   float sht1T = NAN, sht1RH = NAN;
   bool sht1OK = false;
   if (haveSHT1) {
-    sht1T = sht1.readTemperature(SHT31_HIGHREP);
-    sht1RH = sht1.readHumidity(SHT31_HIGHREP);
+    sht1T = sht1.readTemperature();
+    sht1RH = sht1.readHumidity();
     sht1OK = (!isnan(sht1T) && !isnan(sht1RH));
   }
 
@@ -497,54 +460,20 @@ if (haveINA) {
   //  Serial.println(client.getLastErrorMessage());
   //}
   
-  String hex_sht1T   = floatToHex(sht1T, 100);   // Temperatura *100
-  String hex_sht1RH  = floatToHex(sht1RH, 100);
-  String hex_sht2T   = floatToHex(sht2T, 100);
-  String hex_sht2RH  = floatToHex(sht2RH, 100);
-  String hex_uvA     = floatToHex(uvA, 1000);
-  String hex_uvB     = floatToHex(uvB, 1000);
-  String hex_uvC     = floatToHex(uvC, 1000);
-  String hex_envT    = floatToHex(envT, 100);
-  String hex_envP    = floatToHex(envP_hPa, 10);
-  String hex_envRH   = floatToHex(envRH, 100);
-  String hex_inaV    = floatToHex(inaV, 100);
-  String hex_inaI    = floatToHex(inaI, 10);
-  String hex_inaP    = floatToHex(inaP, 10);
-  String hex_inaEneregy    = floatToHex(energy_mWh, 100);
-  String hex_overCurrent   = floatToHex(overCurrent, 1);
-  String hex_okFlags       = floatToHex(okFlags, 1);
-
-  // Unir todo en un solo string largo
-  String payloadHex = hex_sht1T + "," + hex_sht1RH + "," +
-                      hex_sht2T + "," + hex_sht2RH + "," +
-                      hex_uvA   + "," + hex_uvB   + "," + hex_uvC + "," +
-                      hex_envT  + "," + hex_envP  + "," + hex_envRH + "," +
-                      hex_inaV  + "," + hex_inaI  + "," + hex_inaP + "," +
-                      hex_inaEneregy + "," + hex_overCurrent + "," + hex_okFlags;
-
-  //ThingSpeak.setField(1,sht1T);
-  //ThingSpeak.setField(2,sht1RH);
-  //ThingSpeak.setField(3,sht2T);
-  //ThingSpeak.setField(4,inaV);
-  //ThingSpeak.setField(5,inaI);
-  //ThingSpeak.setField(6,envP_hPa);
-  //ThingSpeak.setField(7,uvA);
-  //ThingSpeak.setField(8,uvB);
-
-  uint16_t crc = crc16((const uint8_t*)payloadHex.c_str(), payloadHex.length());
-
-  // Agregar CRC al final del string
-  char crcBuffer[10];
-  sprintf(crcBuffer, "%04X", crc);   // 4 dígitos hex
-  String payloadFinal = payloadHex + ",CRC:" + String(crcBuffer);
-
-  ThingSpeak.setField(8, payloadFinal);
+  ThingSpeak.setField(1,sht1T);
+  ThingSpeak.setField(2,sht1RH);
+  ThingSpeak.setField(3,sht2T);
+  ThingSpeak.setField(4,inaV);
+  ThingSpeak.setField(5,inaI);
+  ThingSpeak.setField(6,envP_hPa);
+  ThingSpeak.setField(7,uvA);
+  ThingSpeak.setField(8,uvB);
 
   int httpCode = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
   
+
   if (httpCode == 200) {
     Serial.println("Channel write successful.");
-    Serial.println(payloadFinal);
   }
   else {
     Serial.println("Problem writing to channel. HTTP error code " + String(httpCode));
