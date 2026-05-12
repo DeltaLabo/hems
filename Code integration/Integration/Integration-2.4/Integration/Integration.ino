@@ -115,6 +115,12 @@ float prom_uvA = 0, prom_uvB = 0, prom_uvC = 0, prom_uvTotal = 0;
 float prom_envT = 0, prom_envP_hPa = 0, prom_envRH = 0;
 float prom_inaV = 0, prom_inaI = 0, prom_inaP = 0;
 
+float suma_sht1T = 0, suma_sht1RH = 0;
+float suma_sht2T = 0, suma_sht2RH = 0;
+float suma_uvA = 0, suma_uvB = 0, suma_uvC = 0, suma_uvTotal = 0;
+float suma_envT = 0, suma_envP_hPa = 0, suma_envRH = 0;
+float suma_inaV = 0, suma_inaI = 0, suma_inaP = 0; 
+
 // ---------- Get datetime ISO8601 ----------
 String getDateTimeString() {
   struct tm timeinfo;
@@ -538,6 +544,9 @@ if (haveINA) {
     float prom_envT = suma_envT / sampleCount;
     float prom_envP_hPa = suma_envP_hPa / sampleCount;
     float prom_envRH = suma_envRH / sampleCount;
+    float prom_inaV = suma_inaV / sampleCount;
+    float prom_inaI = suma_inaI / sampleCount;
+    float prom_inaP = suma_inaP / sampleCount;
     float prom_uvA     = suma_uvA     / sampleCount;
     float prom_uvB     = suma_uvB     / sampleCount;
     float prom_uvC     = suma_uvC     / sampleCount;
@@ -595,6 +604,23 @@ if (haveINA) {
     else {
       Serial.println("Problem writing to channel. HTTP error code " + String(httpCode));
     }
+
+    // Reiniciar acumuladores para el siguiente lote de 20 lecturas
+    sampleCount = 0;
+    suma_sht1T = 0;
+    suma_sht1RH = 0;
+    suma_sht2T = 0;
+    suma_sht2RH = 0;
+    suma_envT = 0;
+    suma_envP_hPa = 0;
+    suma_envRH = 0;
+    suma_inaV = 0;
+    suma_inaI = 0;
+    suma_inaP = 0;
+    suma_uvA = 0;
+    suma_uvB = 0;
+    suma_uvC = 0;
+    suma_uvTotal = 0;
 
   }
 
