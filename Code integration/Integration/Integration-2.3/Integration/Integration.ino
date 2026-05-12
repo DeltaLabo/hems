@@ -328,8 +328,8 @@ void loop() {
   float sht1T = NAN, sht1RH = NAN;
   bool sht1OK = false;
   if (haveSHT1) {
-    sht1T = sht1.readTemperature(SHT31_HIGHREP);
-    sht1RH = sht1.readHumidity(SHT31_HIGHREP);
+    sht1T = sht1.readTemperature();
+    sht1RH = sht1.readHumidity();
     sht1OK = (!isnan(sht1T) && !isnan(sht1RH));
   }
 
