@@ -6,7 +6,7 @@ import datetime
 # --- Configuración del canal ---
 CHANNEL_ID = 3355700
 READ_API_KEY = "SEB48I2QMFR2TOQ3"
-URL = f"https://api.thingspeak.com/channels/{CHANNEL_ID}/feeds.json?api_key={READ_API_KEY}&results=500"
+URL = f"https://api.thingspeak.com/channels/{CHANNEL_ID}/feeds.json?api_key={READ_API_KEY}&results=700"
 # URL = f"https://api.thingspeak.com/channels/{CHANNEL_ID}/fields/2.json?api_key={READ_API_KEY}&results=100"
 
 # --- Cargar datos desde ThingSpeak ---
