@@ -107,13 +107,6 @@ bool overCurrent = false;
 // Promedio de lecturas INA219
 const uint8_t INA_SAMPLES = 10;  // Ajustable: 5, 10, 20...
 
-// Variables globales para acumulación
-int sampleCount = 0;
-float prom_sht1T = 0, prom_sht1RH = 0;
-float prom_sht2T = 0, prom_sht2RH = 0;
-float prom_uvA = 0, prom_uvB = 0, prom_uvC = 0, prom_uvTotal = 0;
-float prom_envT = 0, prom_envP_hPa = 0, prom_envRH = 0;
-float prom_inaV = 0, prom_inaI = 0, prom_inaP = 0;
 
 // ---------- Get datetime ISO8601 ----------
 String getDateTimeString() {
@@ -191,34 +184,6 @@ void appendCSV(String datetime, uint32_t t_ms,
   }
 }
 
-String floatToHex(float valor, int escala = 100) {
-  
-  if (isnan(valor)){
-    valor = 0.0;
-  }
-  
-  int entero = (int)(valor * escala);   // Escala para conservar decimales
-  char buffer[10];
-  sprintf(buffer, "%X", entero);        // Convierte a HEX
-  return String(buffer);
-}
-
-// ---- CRC16 (polinomio 0x8005, inicial 0xFFFF) ----
-uint16_t crc16(const uint8_t *data, size_t length) {
-  uint16_t crc = 0xFFFF;
-  for (size_t i = 0; i < length; i++) {
-    crc ^= (uint16_t)data[i] << 8;
-    for (uint8_t j = 0; j < 8; j++) {
-      if (crc & 0x8000) {
-        crc = (crc << 1) ^ 0x8005;
-      } else {
-        crc <<= 1;
-      }
-    }
-  }
-  return crc;
-}
-
 // ---------- Setup ----------
 void setup() {
   Serial.begin(115200);
@@ -293,16 +258,7 @@ void setup() {
   } else {
     Serial.println(F("BME/BMP NOT found."));
   }
-  
-  bme.setSampling(
-    Adafruit_BME280::MODE_NORMAL,
-    Adafruit_BME280::SAMPLING_X16,   // Temperatura oversampling x16
-    Adafruit_BME280::SAMPLING_X16,   // Presión oversampling x16
-    Adafruit_BME280::SAMPLING_X16,   // Humedad oversampling x16
-    Adafruit_BME280::FILTER_X16,     // Filtro IIR
-    Adafruit_BME280::STANDBY_MS_0_5  // Tiempo de espera
-  );
-  
+
   // ---- INA219 ----
   haveINA = ina219.begin();
   if (haveINA) {
@@ -425,28 +381,7 @@ if (haveINA) {
   lastEnergyUpdate = nowEnergy;
 }
 
-
-// ---- Acumular lecturas ----
-  suma_sht1T += sht1T;
-  suma_sht1RH  += sht1RH;
-  suma_sht2T += sht2T;
-  suma_sht2RH  += sht2RH;
-  suma_envT += envT;
-  suma_envP_hPa += envP_hPa;
-  suma_envRH  += envRH;
-  suma_inaV += inaV;
-  suma_inaI += inaI;
-  suma_inaP += inaP;
-  if (uvOK) {
-    suma_uvA += uvA;
-    suma_uvB += uvB;
-    suma_uvC += uvC;
-    suma_uvTotal += uvTotal;
-  }
-
-  sampleCount++;
-
-    // Mostrar en LCD
+  // Mostrar en LCD
   lcd.setCursor(0,1);   // Segunda línea
   lcd.print("Temperatura: ");
   lcd.print(sht1T, 2);  // Imprime con 2 decimales
@@ -525,77 +460,23 @@ if (haveINA) {
   //  Serial.println(client.getLastErrorMessage());
   //}
   
-    // ---- Cuando llegamos a 20 lecturas ----
+  ThingSpeak.setField(1,sht1T);
+  ThingSpeak.setField(2,sht1RH);
+  ThingSpeak.setField(3,sht2T);
+  ThingSpeak.setField(4,inaV);
+  ThingSpeak.setField(5,inaI);
+  ThingSpeak.setField(6,envP_hPa);
+  ThingSpeak.setField(7,uvA);
+  ThingSpeak.setField(8,uvB);
 
-
-    
-  if (sampleCount >= 20) {
-    // Calcular promedios
-    float prom_sht1T = suma_sht1T / sampleCount;
-    float prom_sht1RH = suma_sht1RH / sampleCount;
-    float prom_sht2T = suma_sht2T / sampleCount;
-    float prom_sht2RH = suma_sht2RH / sampleCount;
-    float prom_envT = suma_envT / sampleCount;
-    float prom_envP_hPa = suma_envP_hPa / sampleCount;
-    float prom_envRH = suma_envRH / sampleCount;
-    float prom_uvA     = suma_uvA     / sampleCount;
-    float prom_uvB     = suma_uvB     / sampleCount;
-    float prom_uvC     = suma_uvC     / sampleCount;
-    float prom_uvTotal = suma_uvTotal / sampleCount;
-
-    String hex_sht1T   = floatToHex(prom_sht1T, 100);   // Temperatura *100
-    String hex_sht1RH  = floatToHex(prom_sht1RH, 100);
-    String hex_sht2T   = floatToHex(prom_sht2T, 100);
-    String hex_sht2RH  = floatToHex(prom_sht2RH, 100);
-    String hex_uvA     = floatToHex(prom_uvA, 1000);
-    String hex_uvB     = floatToHex(prom_uvB, 1000);
-    String hex_uvC     = floatToHex(prom_uvC, 1000);
-    String hex_envT    = floatToHex(prom_envT, 100);
-    String hex_envP    = floatToHex(prom_envP_hPa, 10);
-    String hex_envRH   = floatToHex(prom_envRH, 100);
-    String hex_inaV    = floatToHex(prom_inaV, 100);
-    String hex_inaI    = floatToHex(prom_inaI, 10);
-    String hex_inaP    = floatToHex(prom_inaP, 10);
-    String hex_inaEneregy    = floatToHex(energy_mWh, 100);
-    String hex_overCurrent   = floatToHex(overCurrent, 1);
-    String hex_okFlags       = floatToHex(okFlags, 1);
-
-    // Unir todo en un solo string largo
-    String payloadHex = hex_sht1T + "," + hex_sht1RH + "," +
-                      hex_sht2T + "," + hex_sht2RH + "," +
-                      hex_uvA   + "," + hex_uvB   + "," + hex_uvC + "," +
-                      hex_envT  + "," + hex_envP  + "," + hex_envRH + "," +
-                      hex_inaV  + "," + hex_inaI  + "," + hex_inaP + "," +
-                      hex_inaEneregy + "," + hex_overCurrent + "," + hex_okFlags;
-
-  //ThingSpeak.setField(1,sht1T);
-  //ThingSpeak.setField(2,sht1RH);
-  //ThingSpeak.setField(3,sht2T);
-  //ThingSpeak.setField(4,inaV);
-  //ThingSpeak.setField(5,inaI);
-  //ThingSpeak.setField(6,envP_hPa);
-  //ThingSpeak.setField(7,uvA);
-  //ThingSpeak.setField(8,uvB);
-
-    uint16_t crc = crc16((const uint8_t*)payloadHex.c_str(), payloadHex.length());
-
-  // Agregar CRC al final del string
-    char crcBuffer[10];
-    sprintf(crcBuffer, "%04X", crc);   // 4 dígitos hex
-    String payloadFinal = payloadHex + ",CRC:" + String(crcBuffer);
-
-  // ThingSpeak.setField(8, payloadFinal);
-
-    int httpCode = ThingSpeak.writeField(myChannelNumber, 8, payloadFinal, myWriteAPIKey);
+  int httpCode = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
   
-    if (httpCode == 200) {
-      Serial.println("Channel write successful.");
-      Serial.println(payloadFinal);
-    }
-    else {
-      Serial.println("Problem writing to channel. HTTP error code " + String(httpCode));
-    }
 
+  if (httpCode == 200) {
+    Serial.println("Channel write successful.");
+  }
+  else {
+    Serial.println("Problem writing to channel. HTTP error code " + String(httpCode));
   }
 
   delay(1000);
