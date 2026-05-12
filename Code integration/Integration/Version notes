@@ -1,5 +1,6 @@
 Notes about versions:
-2.0: 
+2.0: initial version
 2.1: includes transmision to database
 2.2: includes hexadecimal transmision and repetibility in sensors.
 2.3: includes SD inicialization and retry strategy.
+2.4: includes the average of "n" measures, to be sent to database

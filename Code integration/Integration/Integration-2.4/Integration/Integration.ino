@@ -109,11 +109,6 @@ const uint8_t INA_SAMPLES = 10;  // Ajustable: 5, 10, 20...
 
 // Variables globales para acumulación
 int sampleCount = 0;
-float prom_sht1T = 0, prom_sht1RH = 0;
-float prom_sht2T = 0, prom_sht2RH = 0;
-float prom_uvA = 0, prom_uvB = 0, prom_uvC = 0, prom_uvTotal = 0;
-float prom_envT = 0, prom_envP_hPa = 0, prom_envRH = 0;
-float prom_inaV = 0, prom_inaI = 0, prom_inaP = 0;
 
 float suma_sht1T = 0, suma_sht1RH = 0;
 float suma_sht2T = 0, suma_sht2RH = 0;
