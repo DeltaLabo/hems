@@ -286,7 +286,16 @@ void setup() {
   } else {
     Serial.println(F("BME/BMP NOT found."));
   }
-
+  
+  bme.setSampling(
+    Adafruit_BME280::MODE_NORMAL,
+    Adafruit_BME280::SAMPLING_X16,   // Temperatura oversampling x16
+    Adafruit_BME280::SAMPLING_X16,   // Presión oversampling x16
+    Adafruit_BME280::SAMPLING_X16,   // Humedad oversampling x16
+    Adafruit_BME280::FILTER_X16,     // Filtro IIR
+    Adafruit_BME280::STANDBY_MS_0_5  // Tiempo de espera
+  );
+  
   // ---- INA219 ----
   haveINA = ina219.begin();
   if (haveINA) {
@@ -319,8 +328,8 @@ void loop() {
   float sht1T = NAN, sht1RH = NAN;
   bool sht1OK = false;
   if (haveSHT1) {
-    sht1T = sht1.readTemperature();
-    sht1RH = sht1.readHumidity();
+    sht1T = sht1.readTemperature(SHT31_HIGHREP);
+    sht1RH = sht1.readHumidity(SHT31_HIGHREP);
     sht1OK = (!isnan(sht1T) && !isnan(sht1RH));
   }
 
