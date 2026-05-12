@@ -126,6 +126,14 @@ bool initSD() {
   if (!sd.begin(SdSpiConfig(SD_CS, SHARED_SPI, SD_SCK_MHZ(25)))) {
     Serial.println(F("SD init failed."));
     sd.printSdError(&Serial);
+
+    delay(500);
+    
+    Serial.println(F("Reintentando inicialización SD..."));
+    if (!sd.begin(SdSpiConfig(SD_CS, SHARED_SPI, SD_SCK_MHZ(25)))) {
+      Serial.println(F("❌ SD init failed (second try)."));
+      sd.printSdError(&Serial);
+      
     return false;
   }
 
