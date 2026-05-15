@@ -877,7 +877,7 @@ if (haveINA) {
 
     // Incluir hora y fecha de envío dentro del paquete
     String packetTime = datetime;
-    String fwVersion = String(firmwareVersionCode); // Enviar versión como entero fijo (1.00 -> 100)
+    String fwVersion = uintToHex(firmwareVersionCode, 2); // Enviar versión en hex (1.00 -> 64)
 
     // Unir todo en un solo string largo
     String payloadHex = hex_sht1T + "," + hex_sht1RH + "," +
@@ -886,7 +886,7 @@ if (haveINA) {
                       hex_envT  + "," + hex_envP  + "," + hex_envRH + "," +
                       hex_inaV  + "," + hex_inaI  + "," + hex_inaP + "," +
                       hex_inaEneregy + "," + hex_overCurrent + "," + hex_okFlags + "," + hex_errorCodes + "," +
-                      hex_sht1Fail + "," + hex_sht2Fail + "," + hex_uvFail + "," + hex_envFail + "," + hex_inaFail + "," + hex_sdFail + "," + packetTime + "," + fwVersion;
+                      hex_sht1Fail + "," + hex_sht2Fail + "," + hex_uvFail + "," + hex_envFail + "," + hex_inaFail + "," + hex_sdFail + "," + fwVersion + "," + packetTime;
                 
 
     uint16_t crc = crc16((const uint8_t*)payloadHex.c_str(), payloadHex.length());
