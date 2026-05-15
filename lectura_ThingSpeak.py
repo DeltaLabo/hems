@@ -30,9 +30,9 @@ if st.button("Cargar desde Base de Datos"):
     ultimo = df.iloc[-1]
     st.subheader("Valores Actuales")
     col1, col2 = st.columns(2)
-    col1.metric("Índice de Estrés Térmico", ultimo["field3"], "Riesgo Alto")
-    col2.metric("Temperatura (°C)", ultimo["field4"])
-    st.metric("Humedad (%)", ultimo["field3"])
+    col1.metric("Índice de Estrés Térmico", ultimo["field7"], "Riesgo Alto")
+    col2.metric("Temperatura (°C)", ultimo["field8"])
+    st.metric("Humedad (%)", ultimo["field8"])
 
     # --- Gráficas históricas ---
     st.subheader("Historial de Índices de Estrés Térmico")

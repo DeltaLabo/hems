@@ -106,16 +106,7 @@ bool overCurrent = false;
 
 // Promedio de lecturas INA219
 const uint8_t INA_SAMPLES = 10;  // Ajustable: 5, 10, 20...
-const uint8_t SENSOR_SAMPLES = 5;  // Ajustable: 1, 5, 10...
 
-// Variables globales para acumulación
-int sampleCount = 0;
-
-float suma_sht1T = 0, suma_sht1RH = 0;
-float suma_sht2T = 0, suma_sht2RH = 0;
-float suma_uvA = 0, suma_uvB = 0, suma_uvC = 0, suma_uvTotal = 0;
-float suma_envT = 0, suma_envP_hPa = 0, suma_envRH = 0;
-float suma_inaV = 0, suma_inaI = 0, suma_inaP = 0; 
 
 // ---------- Get datetime ISO8601 ----------
 String getDateTimeString() {
@@ -193,34 +184,6 @@ void appendCSV(String datetime, uint32_t t_ms,
   }
 }
 
-String floatToHex(float valor, int escala = 100) {
-  
-  if (isnan(valor)){
-    valor = 0.0;
-  }
-  
-  int entero = (int)(valor * escala);   // Escala para conservar decimales
-  char buffer[10];
-  sprintf(buffer, "%X", entero);        // Convierte a HEX
-  return String(buffer);
-}
-
-// ---- CRC16 (polinomio 0x8005, inicial 0xFFFF) ----
-uint16_t crc16(const uint8_t *data, size_t length) {
-  uint16_t crc = 0xFFFF;
-  for (size_t i = 0; i < length; i++) {
-    crc ^= (uint16_t)data[i] << 8;
-    for (uint8_t j = 0; j < 8; j++) {
-      if (crc & 0x8000) {
-        crc = (crc << 1) ^ 0x8005;
-      } else {
-        crc <<= 1;
-      }
-    }
-  }
-  return crc;
-}
-
 // ---------- Setup ----------
 void setup() {
   Serial.begin(115200);
@@ -295,16 +258,7 @@ void setup() {
   } else {
     Serial.println(F("BME/BMP NOT found."));
   }
-  
-  bme.setSampling(
-    Adafruit_BME280::MODE_NORMAL,
-    Adafruit_BME280::SAMPLING_X16,   // Temperatura oversampling x16
-    Adafruit_BME280::SAMPLING_X16,   // Presión oversampling x16
-    Adafruit_BME280::SAMPLING_X16,   // Humedad oversampling x16
-    Adafruit_BME280::FILTER_X16,     // Filtro IIR
-    Adafruit_BME280::STANDBY_MS_0_5  // Tiempo de espera
-  );
-  
+
   // ---- INA219 ----
   haveINA = ina219.begin();
   if (haveINA) {
@@ -320,48 +274,6 @@ void setup() {
   lastEnergyUpdate = millis();
 
   ThingSpeak.begin(client);
-
-  // ---- INA219 ----
-  float m_bus = 1.0158;    // m de Vbus
-  float b_bus = -0.09;    //  b de Vbus
-
-  float m_curr = 0.9777;   //  m de Corriente
-  float b_curr = 6.4103;   //  b de Corriente
-
-  float m_shunt = 1.2849;  //  m de Vshunt
-  float b_shunt = 3.6019;  //  b de Vshunt
-
-  // ---- BME280 ----
-  float m_t_BME = 1;    // pendiente para temperatura del sensor BME280 
-  float b_t_BME = 0;      // intercepto para temperatura del sensor BME280
-
-  float m_h_BME = 1;    // pendiente para humedad del sensor BME280 
-  float b_h_BME = 0;      // intercepto para humedad del sensor BME280
-
-  float m_p_BME = 1;    // pendiente para presión del sensor BME280
-  float b_p_BME = 0;      // intercepto para presión del sensor BME280
-
-  // ---- AS7331 ----
-  float m_uvA = 1;    // pendiente para UV A
-  float b_uvA = 0;      // intercepto para UV A
-
-  float m_uvB = 1;    // pendiente para UV B
-  float b_uvB = 0;      // intercepto para UV B
-
-  // ---- SHT31 #1 ----
-  float m_t_SHT1 = 1;    // pendiente para temperatura del sensor SHT31 #1
-  float b_t_SHT1 = 0;      // intercepto para temperatura del sensor  SHT31 #1
-
-  float m_h_SHT1 = 1;    // pendiente para humedad del sensor SHT31 #1
-  float b_h_SHT1 = 0;      // intercepto para humedad del sensor
-
-  // ---- SHT31 #2 ----
-  float m_t_SHT2 = 1;    // pendiente para temperatura del sensor SHT31 #2
-  float b_t_SHT2 = 0;      // intercepto para temperatura del sensor  SHT31 #2
-
-  float m_h_SHT2 = 1;    // pendiente para humedad del sensor SHT31 #2
-  float b_h_SHT2 = 0;      // intercepto para humedad del sensor
-
 }
 
 uint32_t lastPrint = 0;
@@ -369,7 +281,6 @@ const uint32_t LOG_PERIOD_MS = 1000;
 
 // ---------- Loop ----------
 void loop() {
-
   uint32_t now = millis();
   if (now - lastPrint < LOG_PERIOD_MS) return;
   lastPrint = now;
@@ -380,14 +291,8 @@ void loop() {
   float sht1T = NAN, sht1RH = NAN;
   bool sht1OK = false;
   if (haveSHT1) {
-    
-    for (uint8_t i = 0; i < SENSOR_SAMPLES; i++) {
-      sht1T += sht1.readTemperature();
-      sht1RH += sht1.readHumidity();
-      delay(10);
-    }
-    sht1T /= SENSOR_SAMPLES;
-    sht1RH /= SENSOR_SAMPLES;
+    sht1T = sht1.readTemperature();
+    sht1RH = sht1.readHumidity();
     sht1OK = (!isnan(sht1T) && !isnan(sht1RH));
   }
 
@@ -395,13 +300,8 @@ void loop() {
   float sht2T = NAN, sht2RH = NAN;
   bool sht2OK = false;
   if (haveSHT2) {
-    for (uint8_t i = 0; i < SENSOR_SAMPLES; i++) {
-      sht2T += sht2.readTemperature();
-      sht2RH += sht2.readHumidity();
-      delay(10);
-    }
-    sht2T /= SENSOR_SAMPLES;
-    sht2RH /= SENSOR_SAMPLES;
+    sht2T = sht2.readTemperature();
+    sht2RH = sht2.readHumidity();
     sht2OK = (!isnan(sht2T) && !isnan(sht2RH));
   }
 
@@ -428,36 +328,22 @@ void loop() {
   }
 
   // ---- BME/BMP ----
-  float envT = NAN, envP_hPa = NAN, envRH = NAN; samples = 5;
+  float envT = NAN, envP_hPa = NAN, envRH = NAN;
   bool envOK = false;
   if (haveBME) {
-    
-    for (uint8_t i = 0; i < SENSOR_SAMPLES; i++) {
-      envT += bme.readTemperature();
-      envP_hPa += bme.readPressure() / 100.0f;
-      envRH += bme.readHumidity();
-      delay(10);
-    }
-    envT /= SENSOR_SAMPLES;
-    envP_hPa /= SENSOR_SAMPLES;
-    envRH /= SENSOR_SAMPLES;
+    envT = bme.readTemperature();
+    envP_hPa = bme.readPressure() / 100.0f;
+    envRH = bme.readHumidity();
     envOK = true;
-
   } else if (haveBMP) {
-
-      for (uint8_t i = 0; i < SENSOR_SAMPLES; i++) {
-        envT += bmp.readTemperature();
-        envRH += bmp.readHumidity() / 100.0f;
-        delay(10);
-      }
-
-    envT /= SENSOR_SAMPLES;
-    envRH /= SENSOR_SAMPLES;
-    envP_hPa = NAN;
+    envT = bmp.readTemperature();
+    envP_hPa = bmp.readPressure() / 100.0f;
+    envRH = NAN;
     envOK = true;
   }
 
-// ---- INA219 ----
+  // ---- INA219 ----
+// ---- INA219 (promediado) ----
 float inaV = NAN, inaI = NAN, inaP = NAN;
 bool inaOK = false;
 
@@ -495,28 +381,7 @@ if (haveINA) {
   lastEnergyUpdate = nowEnergy;
 }
 
-// ---- Acumular lecturas ----
-  suma_sht1T    += sht1T;
-  suma_sht1RH   += sht1RH;
-  suma_sht2T    += sht2T;
-  suma_sht2RH   += sht2RH;
-  suma_envT     += envT;
-  suma_envP_hPa += envP_hPa;
-  suma_envRH    += envRH;
-  suma_inaV     += inaV;
-  suma_inaI     += inaI;
-  suma_inaP     += inaP;
-
-  if (uvOK) {
-    suma_uvA += uvA;
-    suma_uvB += uvB;
-    suma_uvC += uvC;
-    suma_uvTotal += uvTotal;
-  }
-
-  sampleCount++;
-
-    // Mostrar en LCD
+  // Mostrar en LCD
   lcd.setCursor(0,1);   // Segunda línea
   lcd.print("Temperatura: ");
   lcd.print(sht1T, 2);  // Imprime con 2 decimales
@@ -569,84 +434,49 @@ if (haveINA) {
             okFlags);
 
 
-    // ---- Cuando llegamos a 20 lecturas ----
-   
-  if (sampleCount >= 20) {
-    // Calcular promedios
-    float prom_sht1T = suma_sht1T / sampleCount;
-    float prom_sht1RH = suma_sht1RH / sampleCount;
-    float prom_sht2T = suma_sht2T / sampleCount;
-    float prom_sht2RH = suma_sht2RH / sampleCount;
-    float prom_envT = suma_envT / sampleCount;
-    float prom_envP_hPa = suma_envP_hPa / sampleCount;
-    float prom_envRH = suma_envRH / sampleCount;
-    float prom_inaV = suma_inaV / sampleCount;
-    float prom_inaI = suma_inaI / sampleCount;
-    float prom_inaP = suma_inaP / sampleCount;
-    float prom_uvA     = suma_uvA     / sampleCount;
-    float prom_uvB     = suma_uvB     / sampleCount;
-    float prom_uvC     = suma_uvC     / sampleCount;
-    float prom_uvTotal = suma_uvTotal / sampleCount;
+  //sensorData.clearFields();
+  //sensorData.addField("sht1_T", sht1T);
+  //sensorData.addField("sht1_RH", sht1RH);
+  //sensorData.addField("sht2_T", sht2T);
+  //sensorData.addField("sht2_RH", sht2RH);
 
-    String hex_sht1T   = floatToHex(prom_sht1T, 100);       // Temperatura *100
-    String hex_sht1RH  = floatToHex(prom_sht1RH, 100);      // Humedad *100
-    String hex_sht2T   = floatToHex(prom_sht2T, 100);       // Temperatura *100
-    String hex_sht2RH  = floatToHex(prom_sht2RH, 100);      // Humedad *100
-    String hex_uvA     = floatToHex(prom_uvA, 1000);        // UV A *1000 para 3 decimales
-    String hex_uvB     = floatToHex(prom_uvB, 1000);        // UV B *1000 para 3 decimales
-    String hex_uvC     = floatToHex(prom_uvC, 1000);        // UV C *1000 para 3 decimales
-    String hex_envT    = floatToHex(prom_envT, 100);        // Temperatura *100
-    String hex_envP    = floatToHex(prom_envP_hPa, 10);     // Presión *10 para 1 decimal
-    String hex_envRH   = floatToHex(prom_envRH, 100);       // Humedad *100 para 2 decimales
-    String hex_inaV    = floatToHex(prom_inaV, 100);        // Voltaje *100 para 2 decimales
-    String hex_inaI    = floatToHex(prom_inaI, 10);         // Corriente *10 para 1 decimal
-    String hex_inaP    = floatToHex(prom_inaP, 10);         // Potencia *10 para 1 decimal
-    String hex_inaEneregy    = floatToHex(energy_mWh, 100); // Energía *100 para 2 decimales
-    String hex_overCurrent   = floatToHex(overCurrent, 1);
-    String hex_okFlags       = floatToHex(okFlags, 1);
+  //sensorData.addField("uvA", uvA);
+  //sensorData.addField("uvB", uvB);
+  //sensorData.addField("uvC", uvC);
 
-    // Unir todo en un solo string largo
-    String payloadHex = hex_sht1T + "," + hex_sht1RH + "," +
-                      hex_sht2T + "," + hex_sht2RH + "," +
-                      hex_uvA   + "," + hex_uvB   + "," + hex_uvC + "," +
-                      hex_envT  + "," + hex_envP  + "," + hex_envRH + "," +
-                      hex_inaV  + "," + hex_inaI  + "," + hex_inaP + "," +
-                      hex_inaEneregy + "," + hex_overCurrent + "," + hex_okFlags;
+  //sensorData.addField("env_T", envT);
+  //sensorData.addField("env_P", envP_hPa);
+  //sensorData.addField("env_RH", envRH);
 
-    uint16_t crc = crc16((const uint8_t*)payloadHex.c_str(), payloadHex.length());
+  //sensorData.addField("ina_Vbus", inaV);
+  //sensorData.addField("ina_current_mA", inaI);
+  //sensorData.addField("ina_power_mW", inaP);
+  //sensorData.addField("energy_mWh", energy_mWh);
+  //sensorData.addField("overcurrent_flag", overCurrent ? 1 : 0);
+  //sensorData.addField("sensor_ok_flags", okFlags);
 
-  // Agregar CRC al final del string
-    char crcBuffer[10];
-    sprintf(crcBuffer, "%04X", crc);   // 4 dígitos hex
-    String payloadFinal = payloadHex + ",CRC:" + String(crcBuffer);
-
-    int httpCode = ThingSpeak.writeField(myChannelNumber, 8, payloadFinal, myWriteAPIKey);
+  //if (!client.writePoint(sensorData)) {
+  //  Serial.print("InfluxDB write failed: ");
+  //  Serial.println(client.getLastErrorMessage());
+  //}
   
-    if (httpCode == 200) {
-      Serial.println("Channel write successful.");
-      Serial.println(payloadFinal);
-    }
-    else {
-      Serial.println("Problem writing to channel. HTTP error code " + String(httpCode));
-    }
+  ThingSpeak.setField(1,sht1T);
+  ThingSpeak.setField(2,sht1RH);
+  ThingSpeak.setField(3,sht2T);
+  ThingSpeak.setField(4,inaV);
+  ThingSpeak.setField(5,inaI);
+  ThingSpeak.setField(6,envP_hPa);
+  ThingSpeak.setField(7,uvA);
+  ThingSpeak.setField(8,uvB);
 
-    // Reiniciar acumuladores para el siguiente lote de 20 lecturas
-    sampleCount = 0;
-    suma_sht1T = 0;
-    suma_sht1RH = 0;
-    suma_sht2T = 0;
-    suma_sht2RH = 0;
-    suma_envT = 0;
-    suma_envP_hPa = 0;
-    suma_envRH = 0;
-    suma_inaV = 0;
-    suma_inaI = 0;
-    suma_inaP = 0;
-    suma_uvA = 0;
-    suma_uvB = 0;
-    suma_uvC = 0;
-    suma_uvTotal = 0;
+  int httpCode = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
+  
 
+  if (httpCode == 200) {
+    Serial.println("Channel write successful.");
+  }
+  else {
+    Serial.println("Problem writing to channel. HTTP error code " + String(httpCode));
   }
 
   delay(1000);
