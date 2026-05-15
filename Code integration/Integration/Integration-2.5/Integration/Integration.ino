@@ -158,6 +158,11 @@ bool initSD() {
   return true;
 }
 
+// ---------- Global counters ----------
+uint8_t sensorFailCount[6] = {0, 0, 0, 0, 0, 0}; // sht1, sht2, uv, env, ina, sd
+uint8_t lastDailyCheckDay = 255;
+uint8_t lastHourlyRetryHour = 255;
+
 // ---------- Append CSV ----------
 void appendCSV(String datetime, uint32_t t_ms,
                float sht1T, float sht1RH,
@@ -213,10 +218,6 @@ void appendCSV(String datetime, uint32_t t_ms,
     sd.printSdError(&Serial);
   }
 }
-
-uint8_t lastDailyCheckDay = 255;
-uint8_t lastHourlyRetryHour = 255;
-uint8_t sensorFailCount[6] = {0, 0, 0, 0, 0, 0}; // sht1, sht2, uv, env, ina, sd
 
 void reinitSHT1() {
   bool wasPresent = haveSHT1;
@@ -829,7 +830,7 @@ if (haveINA) {
     // Bitmask: bits 0-4: no presente (0:sht1,1:sht2,2:uv,3:env,4:ina)
     // bits 5-17: NaN variables (5:sht1T,6:sht1RH,7:sht2T,8:sht2RH,9:uvA,10:uvB,11:uvC,12:envT,13:envP,14:envRH,15:inaV,16:inaI,17:inaP)
     // bits 18-19: SD (18:no inicializada, 19:escritura fallida / posiblemente llena)
-    
+
     uint32_t errorCodes = 0;
     if (!haveSHT1) errorCodes |= (1UL << 0);
     if (isnan(prom_sht1T)) errorCodes |= (1UL << 5);
