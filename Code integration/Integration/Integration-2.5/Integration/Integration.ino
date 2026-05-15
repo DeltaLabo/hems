@@ -34,6 +34,7 @@
 unsigned long myChannelNumber = 3355700;
 const char * myWriteAPIKey = "W1Y7D3C7TBU7BN4Y";
 const char * firmwareVersion = "1.0";
+const uint16_t firmwareVersionCode = 100; // Versión 1.00 codificada como entero multiplicado por 100
 
 WiFiClient client;
 
@@ -395,8 +396,19 @@ String floatToHex(float valor, int escala = 100) {
   }
   
   int entero = (int)(valor * escala);   // Escala para conservar decimales
+  if (entero < 0) entero = 0;
   char buffer[10];
   sprintf(buffer, "%X", entero);        // Convierte a HEX
+  return String(buffer);
+}
+
+String uintToHex(uint32_t valor, uint8_t width = 0) {
+  char buffer[12];
+  if (width > 0) {
+    sprintf(buffer, "%0*lX", width, (unsigned long)valor);
+  } else {
+    sprintf(buffer, "%lX", (unsigned long)valor);
+  }
   return String(buffer);
 }
 
@@ -865,17 +877,17 @@ if (haveINA) {
 
     // Incluir hora y fecha de envío dentro del paquete
     String packetTime = datetime;
-    String fwVersion = String(firmwareVersion);
+    String fwVersion = String(firmwareVersionCode); // Enviar versión como entero fijo (1.00 -> 100)
 
     // Unir todo en un solo string largo
-    String payloadHex = packetTime + "," + fwVersion + "," +
-                      hex_sht1T + "," + hex_sht1RH + "," +
+    String payloadHex = hex_sht1T + "," + hex_sht1RH + "," +
                       hex_sht2T + "," + hex_sht2RH + "," +
                       hex_uvA   + "," + hex_uvB   + "," + hex_uvC + "," +
                       hex_envT  + "," + hex_envP  + "," + hex_envRH + "," +
                       hex_inaV  + "," + hex_inaI  + "," + hex_inaP + "," +
                       hex_inaEneregy + "," + hex_overCurrent + "," + hex_okFlags + "," + hex_errorCodes + "," +
-                      hex_sht1Fail + "," + hex_sht2Fail + "," + hex_uvFail + "," + hex_envFail + "," + hex_inaFail + "," + hex_sdFail;
+                      hex_sht1Fail + "," + hex_sht2Fail + "," + hex_uvFail + "," + hex_envFail + "," + hex_inaFail + "," + hex_sdFail + "," + packetTime + "," + fwVersion;
+                
 
     uint16_t crc = crc16((const uint8_t*)payloadHex.c_str(), payloadHex.length());
 
