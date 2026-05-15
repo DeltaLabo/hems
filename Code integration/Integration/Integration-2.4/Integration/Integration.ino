@@ -428,7 +428,7 @@ void loop() {
   }
 
   // ---- BME/BMP ----
-  float envT = NAN, envP_hPa = NAN, envRH = NAN; samples = 5;
+  float envT = NAN, envP_hPa = NAN, envRH = NAN;
   bool envOK = false;
   if (haveBME) {
     
@@ -447,13 +447,13 @@ void loop() {
 
       for (uint8_t i = 0; i < SENSOR_SAMPLES; i++) {
         envT += bmp.readTemperature();
-        envRH += bmp.readHumidity() / 100.0f;
+        envP_hPa += bmp.readPressure() / 100.0f;
         delay(10);
       }
 
     envT /= SENSOR_SAMPLES;
-    envRH /= SENSOR_SAMPLES;
-    envP_hPa = NAN;
+    envP_hPa /= SENSOR_SAMPLES;
+    envRH = NAN;
     envOK = true;
   }
 
