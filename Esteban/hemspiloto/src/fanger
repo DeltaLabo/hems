@@ -1,0 +1,179 @@
+import pandas as pd
+import math
+
+
+def redondear_velocidad(velocidad_aire):
+
+    if 0<velocidad_aire <= 0.05:
+        return 0.05
+
+    elif 0.05<velocidad_aire <= 0.10:
+        return 0.10
+
+    elif 0.10<velocidad_aire <= 0.15:
+        return 0.15
+
+    elif 0.15<velocidad_aire <= 0.20:
+        return 0.20
+
+    elif velocidad_aire <= 0.30:
+        return 0.30
+
+    elif 0.30<velocidad_aire <= 0.40:
+        return 0.40
+
+    elif 0.40<velocidad_aire <= 0.50:
+        return 0.50
+
+    elif velocidad_aire <= 1.00:
+        return 1.00
+
+    else:
+        return 1.50
+
+
+#"""Función para Fanger (Confort térmico)"""
+def Fanger (carga_metabolica,velocidad_aire, temp_globo, temp_aire,temp_bulbo,humedad_relativa,iclofanger):
+ iclofanger=iclofanger*0.155
+
+ actividad= "Ninguna"
+ if 58<=carga_metabolica<87:
+        actividad="Sedentaria"
+ elif 87<=carga_metabolica<145:
+        actividad="Media"
+ elif 145<=carga_metabolica<232:
+        actividad="Alta"
+ trabajo=0
+
+ #Cálculo temperatura radiante media
+ if velocidad_aire > 0.15:
+            temp_radiante_media = ((((temp_globo + 273)**4) + (2.5 * (10**8)) * (velocidad_aire**0.6) * (temp_globo - temp_aire))**0.25) - 273
+ else:
+            temp_radiante_media = ((((temp_globo + 273)**4) + (0.42 * (10**8))*((temp_globo - temp_aire)**0.25)*(temp_globo - temp_aire))**0.25)- 273
+    
+ # Cálculo de los términos
+ presion_saturacion_bulbo = math.exp(16.653 - (4030.18 / (temp_bulbo + 235)))  # (kPa)
+ presion_parcial_ambiente = (presion_saturacion_bulbo - 0.0667 * (temp_aire - temp_bulbo))
+ velocidad_aire_relativa = velocidad_aire + (0.0052 * (carga_metabolica - 58))
+
+
+ #Factor iclo Fanger
+ if iclofanger<0.078:#Equivalente a 0.5 clo
+        fclo= 1+1.29*iclofanger
+ else:
+        fclo= 1.05+0.645*iclofanger
+
+ #Constantes de iteración
+ p1=iclofanger*fclo
+ p2=p1*3.96
+ p3=p1*100
+ p4=p1*temp_aire
+ p5=308.7-0.028*(carga_metabolica-trabajo)+p2*((temp_radiante_media/100)**4)
+
+ #Coeficiente de transferencia por convección forzada
+ hc=0
+ hc2= 12.1*(velocidad_aire_relativa)**0.5
+ #Establecer el valor inicial estimado de la temperatura de la superficie del vestido
+ tclo_estimado= ((temp_aire+273)+(35.5-temp_aire)/(3.5*iclofanger+0.1))
+ it_inicial=tclo_estimado/100
+ it_siguiente=it_inicial
+ iteraciones=0 #cantidad de iteraciones
+ tolerancia=0.00015 #Criterio de parada
+
+ while iteraciones<100:
+    it_siguiente= (it_siguiente+it_inicial)/2
+    hc1= 2.38*abs(it_siguiente-temp_aire)**0.25
+    if hc1 > hc2:
+        hc = hc1
+    else:
+         hc=hc2
+    it_inicial=(p5+p4*hc-p2*((it_siguiente)**4))/(100+p3*hc)
+    iteraciones+=1 #incrementar el contador de iteraciones
+    if abs(it_siguiente-it_inicial)<tolerancia:
+      break 
+
+ tclo= 100*it_inicial-273
+
+ temp_pielF = 35.7-0.0275*(carga_metabolica-trabajo)
+
+ #Expresiones ecuación balance térmico
+ perdida_ev_sudor=0.42*(carga_metabolica-trabajo-58.15)
+ perdida_difusion=3.05*(0.256*temp_pielF-3.373-presion_parcial_ambiente)
+ conveccion_resp= 0.0014*carga_metabolica*(34-temp_aire)
+ evaporacion_res= 0.0172*carga_metabolica*(5.867-presion_parcial_ambiente)
+ perdida_radiacion=3.95*10**(-8)*fclo*(((tclo+273)**4)-((temp_radiante_media+273)**4))
+ perdida_conveccion=fclo*hc*(tclo-temp_aire)
+
+#Flujo de calor sensible de la piel hacia el exterior del vestido
+ K=(3.96*10**(-8)*fclo*(((tclo+273)**4)
+-((temp_radiante_media+273)**4)-fclo*hc*(tclo -temp_aire)))
+
+#TABLAS
+#Importar las tablas de factores de corrección por humedad y temperatura radiante media
+ lista_fh_sedentaria = pd.read_csv("data/factores_de_correccion_humedad_sedentaria.csv")
+ lista_fh_media = pd.read_csv("data/factores_de_correccion_humedad_media.csv")
+ lista_fh_alta = pd.read_csv("data/factores_de_correccion_humedad_alta.csv")
+ lista_fr_sedentaria = pd.read_csv("data/factores_de_correccion_trm_sedentaria.csv")
+ lista_fr_media = pd.read_csv("data/factores_de_correccion_trm_media.csv")
+ lista_fr_alta = pd.read_csv("data/factores_de_correccion_trm_alta.csv")
+
+#Acomodar tablas
+ lista_fh_sedentaria.rename(columns={lista_fh_sedentaria.columns[0]: "velocidad_aire"}, inplace=True)
+ lista_fh_sedentaria["velocidad_aire"] = pd.to_numeric(lista_fh_sedentaria["velocidad_aire"])
+ lista_fh_sedentaria.columns = ["velocidad_aire"] + [float(col) for col in lista_fh_sedentaria.columns[1:]]
+ lista_fh_sedentaria.set_index("velocidad_aire", inplace=True)
+
+ lista_fh_media.rename(columns={lista_fh_media.columns[0]: "velocidad_aire"}, inplace=True)
+ lista_fh_media["velocidad_aire"] = pd.to_numeric(lista_fh_media["velocidad_aire"])
+ lista_fh_media.columns = ["velocidad_aire"] + [float(col) for col in lista_fh_media.columns[1:]]
+ lista_fh_media.set_index("velocidad_aire", inplace=True)
+
+ lista_fh_alta.rename(columns={lista_fh_alta.columns[0]: "velocidad_aire"}, inplace=True)
+ lista_fh_alta["velocidad_aire"] = pd.to_numeric(lista_fh_alta["velocidad_aire"])
+ lista_fh_alta.columns = ["velocidad_aire"] + [float(col) for col in lista_fh_alta.columns[1:]]
+ lista_fh_alta.set_index("velocidad_aire", inplace=True)
+
+ lista_fr_sedentaria.rename(columns={lista_fr_sedentaria.columns[0]: "velocidad_aire"}, inplace=True)
+ lista_fr_sedentaria["velocidad_aire"] = pd.to_numeric(lista_fr_sedentaria["velocidad_aire"])
+ lista_fr_sedentaria.columns = ["velocidad_aire"] + [float(col) for col in lista_fr_sedentaria.columns[1:]]
+ lista_fr_sedentaria.set_index("velocidad_aire", inplace=True)
+
+ lista_fr_media.rename(columns={lista_fr_media.columns[0]: "velocidad_aire"}, inplace=True)
+ lista_fr_media["velocidad_aire"] = pd.to_numeric(lista_fr_media["velocidad_aire"])
+ lista_fr_media.columns = ["velocidad_aire"] + [float(col) for col in lista_fr_media.columns[1:]]
+ lista_fr_media.set_index("velocidad_aire", inplace=True)
+
+ lista_fr_alta.rename(columns={lista_fr_alta.columns[0]: "velocidad_aire"}, inplace=True)
+ lista_fr_alta["velocidad_aire"] = pd.to_numeric(lista_fr_alta["velocidad_aire"])
+ lista_fr_alta.columns = ["velocidad_aire"] + [float(col) for col in lista_fr_alta .columns[1:]]
+ lista_fr_alta.set_index("velocidad_aire", inplace=True)
+
+ #Selección de los la tabla de factores de corrección
+ if actividad == "Sedentaria":
+    tabla_fh = lista_fh_sedentaria
+    tabla_fr = lista_fr_sedentaria
+ elif actividad == "Media":
+    tabla_fh = lista_fh_media
+    tabla_fr = lista_fr_media
+ elif actividad== "Alta":
+    tabla_fh = lista_fh_alta
+    tabla_fr = lista_fr_alta
+
+ velocidad_ivm=redondear_velocidad(velocidad_aire)
+#Selección del factor de corrección
+ factor_humedad = tabla_fh.loc[velocidad_ivm, iclofanger]
+ factor_radiacion = tabla_fr.loc[velocidad_ivm, iclofanger]
+
+#Indice de valoración medio
+ indice_valoracion_medio=(0.303*math.exp(-0.036*carga_metabolica)+0.028)*(carga_metabolica-trabajo-perdida_ev_sudor-perdida_difusion-conveccion_resp-evaporacion_res-perdida_radiacion-perdida_conveccion)
+ indice_valoracion_medio_final= indice_valoracion_medio+factor_humedad*(humedad_relativa-50)+factor_radiacion*(temp_radiante_media-temp_aire)
+ 
+ #Porcentaje de personas insatisfechas
+ porcentaje_insatisfechos=100-95* math.exp(-0.03353*(indice_valoracion_medio_final**4)-0.2179*indice_valoracion_medio_final**2)
+
+ return indice_valoracion_medio_final, porcentaje_insatisfechos, iteraciones
+
+
+
+resultados=Fanger(116.4,0.10,36,32,28,50,0.25)
+print (resultados)
