@@ -6,7 +6,7 @@ import altair as alt
 import math 
 
 # Importar la función desde el archivo funciones.py
-from src.funciones import fanger, indice_de_sudoracion, tgbh, indice_sobrecarga_calorica, format_time, indice_de_calor
+from src.funcionesfang import fanger, indice_de_sudoracion, tgbh, indice_sobrecarga_calorica, format_time, indice_de_calor
 
 #Importar csv con datos de metabolismo, cavs y clo
 lista_cavs = pd.read_csv("data/CAVS.csv")
