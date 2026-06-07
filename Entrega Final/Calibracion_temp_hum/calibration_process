@@ -1,0 +1,463 @@
+%Plantilla para reportes del curso IF4802 v.01 II-2023
+%Autor: Raziel Farid Sanabria Sandí
+
+\documentclass[letterpaper,11pt]{article} %clase artículo, papel tamaño carta, letra mediana 11pt, 
+
+\usepackage[utf8]{inputenc} %Permite caracteres acentuados.
+\usepackage[spanish]{babel} %Permite caracteres en español.
+\usepackage{amsmath} %Uso de lenguaje matemático
+\usepackage{graphicx} %Ingreso de figuras y flotantes de extensión jpg, png, svg...
+\usepackage{graphics}
+
+\usepackage{csquotes}
+
+\usepackage[backend=biber, style=ieee]{biblatex}
+\addbibresource{referencias.bib}
+
+%Las citas deben ir en formato IEEE. Puede revisar https://www.overleaf.com/learn/latex/biblatex_citation_styles
+
+\usepackage{url}
+\providecommand{\keywords}[1]{\textbf{\textit{Palabras clave---}} #1}
+
+%GEOMETRÍA DE LA HOJA%
+\usepackage[top=20mm, bottom=20mm, left=20mm, right=20mm]{geometry} 
+
+\usepackage{tabularx} %Paquete de tablas.
+\usepackage{multirow} %Permite combinar filas.
+\usepackage{multicol} %Permite generar columnas múltiples.
+\usepackage[absolute]{textpos} %Posicionamiento absoluto de texto en la página
+\usepackage{amsfonts} % for the \checkmark command
+\usepackage{siunitx} %para escribir las unidades y números decimales
+\sisetup{output-decimal-marker = {,}} %utilizar las comas como separador decimal
+\usepackage{fancyhdr}
+
+%Encabezado
+\pagestyle{fancy} 
+\fancyhf{}
+\rhead{Laboratorio Delta}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+\cfoot{\thepage}
+\setlength\headheight{13.6pt}
+
+\listfiles
+\usepackage{booktabs} % Paquete para crear líneas de diferentes espesores
+\usepackage{pgfplots} %Paquete para realizar gráficas
+\pgfplotsset{compat=1.18}
+\usepackage{float}
+%%
+
+
+\begin{document}
+%información del archivo
+\title{\textbf{Procedimiento de Calibración de termómetros digitales \\ Laboratorio Delta - TEC}} %Esto tiene un valor 1 % del informe
+
+\author{F. Montero \\ R. D. Moya Serrano}  %Esto tiene un valor 1 % del informe
+
+\date{\today} %Debe indica la fecha de entrega.
+
+\maketitle
+
+A continuación, se presenta un procedimiento general para realizar la calibración de termómetros de lectura directa (termómetro digital) en el Laboratorio Delta del Tecnológico de Costa Rica sede Cartago (DeltaLab).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%Link:   https://www.cem.es/sites/default/files/th-007e_0.pdf
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Notas sobre la norma} %%Es una sección, donde podemos colocar la info que veamos de las normas.
+
+
+
+El presente procedimiento tiene por objeto dar a conocer un método 
+de calibración para medidores de condiciones ambientales de 
+temperatura y humedad en aire, por comparación en medios 
+isotermos de temperatura y humedad relativa controlada.  
+
+El procedimiento es de aplicación a medidores de 
+humedad relativa y temperatura en aire con presentación digital, 
+para el margen de 10 \%HR a 90 \%HR y a una temperatura de 15 °C 
+a 60 °C. La utilización de este proceso está indicada para la 
+calibración de dichos instrumentos cuando los sensores dispongan 
+de características adecuadas de longitud, diámetro e inmersión que 
+permitan ser introducidos en los medios generadores de 
+temperatura y humedad relativa, y dentro de las zonas de 
+calibración previamente caracterizadas para tal fin.  
+
+\section{Definiciones} 
+
+Para este procedimiento, se adoptan las siguientes definiciones:
+
+\begin{description}
+    \item[Termómetro digital:] Instrumento destinado a medir temperatura y mostrar su indicación en formato numérico (por ejemplo, en $^{\circ}\mathrm{C}$ o K). Normalmente está constituido por uno o varios sensores y una unidad de lectura.
+
+    \item[Patrón de referencia:] Instrumento con trazabilidad metrológica demostrada y certificado vigente, utilizado para proporcionar valores de referencia durante la calibración.
+
+    \item[Calibrando:] Instrumento bajo calibración cuyas indicaciones se comparan contra el patrón de referencia para determinar su desempeño metrológico.
+
+    \item[Corrección:] Valor que se suma algebraicamente a la indicación del calibrando para compensar su sesgo respecto al valor de referencia.
+
+    \item[Resolución:] Menor variación de temperatura que puede discriminar y mostrar el instrumento bajo calibración.
+
+    \item[Repetibilidad:] Grado de concordancia entre resultados de medición sucesivos obtenidos bajo las mismas condiciones de operación.
+
+    \item[Deriva:] Cambio lento de la indicación del instrumento en el tiempo, atribuible a envejecimiento, uso o variaciones de sus componentes.
+
+    \item[Gradiente temporal:] Variación de la temperatura del medio isotermo en el tiempo durante el intervalo de medición.
+
+    \item[Gradiente espacial:] Variación de la temperatura en distintas posiciones dentro del volumen útil del medio isotermo.
+
+    \item[Higrómetro:] Instrumento destinado a medir la humedad relativa del aire y mostrar su indicación en forma analógica o digital.
+
+    \item[Certificado:] Documento emitido por un laboratorio competente en el que se consignan los resultados de calibración, la trazabilidad metrológica y la incertidumbre asociada a la medición.
+
+    \item[Medio isotérmico:] Medio o sistema capaz de mantener una temperatura suficientemente uniforme y estable dentro de un volumen útil determinado, de manera que permita realizar comparaciones confiables durante la calibración.
+
+    \item[Incertidumbre expandida:] Parámetro que caracteriza la dispersión de los valores atribuibles al mensurando, expresado para un nivel de confianza asociado a un factor de cobertura $k$.
+\end{description}
+
+
+\section{Equipo y Alcance}
+
+A continuación, se presentan los equipos disponibles para definir correctamente el alcance de calibración del DeltaLab.
+
+Primeramente, se presentan los termómetros patrón disponibles en el DeltaLab, con sus errores máximos permitidos EMP, provenientes de la norma de %%% Norma para calibración de termómetros.
+
+\begin{table}[H]
+    \centering
+    \caption{Termómetros disponibles en el DeltaLab} \vspace{0.2 cm}    
+    \begin{tabular}{p{2.5cm} p{2cm}p{2.5cm}p{3cm}p{3cm}} \hline
+        Tipo & Fabricante & Código & Rango & EMP (°C)\\ \hline
+        
+\\  \hline 
+    \end{tabular}
+    \label{tab:pesas}
+\end{table}
+
+A continuación, se presenta una tabla con los medios isotérmicos de temperatura disponibles en el laboratorio.
+
+\begin{table}[H]
+    \centering
+    \caption{Medios isotérmicos en el laboratorio:} \vspace{0.2 cm}    
+    \begin{tabular}{p{2cm} p{2cm}p{2.5cm}p{1.8cm}p{3cm}p{2cm}} \hline
+        Fabricante & Modelo & Código & Capacidad & División de escala & EMP (°C)\\ \hline
+        Thermo\\Scientific & & & & & \\
+        \hline
+    \end{tabular}
+    \label{tab:equipo}
+\end{table}
+
+A partir de los instrumentos disponibles en el laboratorio, se determinan cuáles termómetros pueden emplearse como calibrando, a partir de la recomendación de que la resolución del patrón debe ser al menos una décima parte del error máximo permitido del termómetro a calibrar.
+
+\begin{table}[H]
+    \centering
+    \caption{Alcance de termómetros a emplear} \vspace{0.2 cm}    
+    \begin{tabular}{p{3cm} p{3cm} p{5cm}} \hline 
+        Tipo de termómetro & Error máximo & Termómetro patrón \\
+
+        \hline
+    \end{tabular}
+    \label{tab:pesas_clase_F1}
+\end{table}
+
+
+\section{Responsables}
+
+El responsable principal de la supervisión del uso correcto y dirección del laboratorio en la hora de los Lunes de 7:30 am a 5:00 pm es el profesor.%%%%%%%%.
+
+
+\section{Propósito}
+
+El propósito de este informe de procedimiento de calibración, es para dar claridad cuáles son los límites y capacidades del laboratorio en cuanto a la calibración de termómetros digitales, además de dar un procedimiento claro de cómo proceder con la calibración de termómetros digitales.
+
+\section{Procedimiento paso a paso}
+
+Para la calibración de termómetros digitales, se emplea el siguiente modelo de medición:
+
+\begin{equation}
+    C_t*=t_{ref}-t_x+A
+\end{equation}
+Donde A corresponde a todas las fuentes de incertidumbres asociadas al modelo, entonces 
+\begin{equation}
+    A=\delta t_{x,res}+\delta t_r +\delta t_{cert}+\delta t_{deriva}
+    +\delta t_{grad_t}+\delta t_{grad_e}
+\end{equation}
+Entonces se tiene el modelo de manera explicita en la siguiente ecuación.
+\begin{equation}
+    C_t*=t_{ref}-t_x+(\delta t_{x,res}+\delta t_r +\delta t_{cert}+\delta t_{deriva}
+    +\delta t_{grad_t}+\delta t_{grad_e})
+\end{equation}
+
+Donde $t_{ref}$ corresponde a la temperatura media indicada por el patrón; $t_x$ corresponde a la temperatura indicada por el calibrando; $\delta t_{x,res}$ corresponde a la corrección por resolución del calibrando; $\delta t_r$ es la corrección por repetibilidad en las mediciones; además, $\delta t_{cert}$ es la corrección en la temperatura del calibrando debida a la calibración del equipo; $\delta t_{deriva}$ es producto de la deriva térmica existente; $\delta t_{grad_t}$ corresponde a la corrección producto del gradiente temporal existente; y $\delta t_{grad_e}$ es producto del gradiente espacial del medio. 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+El siguiente procedimiento, es para calibración de sensores digitales de temperatura y humedad:
+
+\subsection{Materiales y equipos}
+
+Para la realización de la calibración de temperatura se utilizaron los siguientes equipos:
+
+\begin{itemize}
+    \item \textbf{Patrón de referencia}: Termohigrómetro digital marca 3M, modelo QUESTemp 32, con certificado de calibración vigente y trazabilidad metrológica al Sistema Internacional de Unidades (SI). Incertidumbre expandida según certificado $U_{p}$ con factor de cobertura $k=2$.
+    
+    \item \textbf{Instrumento bajo calibración}: Sensor digital de temperatura y humedad SHT-3X, con resolución de lectura de $0.1\,^{\circ}\mathrm{C}$.
+    
+    \item \textbf{Medio generador}: Cámara climática con control de temperatura en el intervalo de operación de la prueba ($15\,^{\circ}\mathrm{C}$ a $60\,^{\circ}\mathrm{C}$) y control de humedad relativa en el intervalo de 10 \%HR a 90 \%HR, previamente caracterizada en términos de estabilidad y uniformidad. Alternativamente es posible utilizar equipos que sustituyan la cámara climática, por algún otro con prestaciones similares. 
+    
+    \item \textbf{Sistema de adquisición de datos}: Interfaz digital para registro de lecturas del sensor SHT-3X.
+\end{itemize}
+\subsection{Operaciones Previas}
+
+Antes de iniciar el proceso de calibración se realizaron las siguientes verificaciones y preparaciones, con el fin de asegurar la validez metrológica de las mediciones:
+
+\begin{enumerate}
+    \item \textbf{Personal a cargo:} Para la correcta ejecución de este procedimiento de calibración se necesita que al menos una persona tenga conocimiento en el uso de ambos equipos y recolección de datos metrológicos.
+    \item \textbf{Inspección física:} Se realizó una inspección visual del sensor SHT-3X y del patrón 3M para descartar daños mecánicos, contaminación o deterioro que pudieran afectar la medición.
+
+    \item \textbf{Condiciones ambientales del laboratorio:} Se verificó que las condiciones ambientales externas (temperatura y humedad del laboratorio) estuvieran dentro del rango recomendado para la operación de los equipos, registrándose dichos valores antes del inicio de la calibración.
+
+    \item \textbf{Verificación del medio generador:} Se inspeccionó el interior de la cámara climática para asegurar ausencia de condensación, suciedad o elementos que pudieran alterar la uniformidad térmica. Se confirmó su correcto funcionamiento y control de temperatura.
+
+    \item \textbf{Estabilización de equipos:} El patrón y el sensor bajo calibración fueron energizados y se permitió un tiempo de estabilización mínimo de 30 minutos antes de iniciar las mediciones.
+
+    \item \textbf{Configuración del sistema de adquisición:} Se verificó la correcta configuración del sistema de lectura del sensor SHT-3X, asegurando que la resolución y los parámetros de muestreo permanecieran constantes durante todo el proceso de calibración.
+
+    \item \textbf{Prevención de gradientes térmicos:} Se evitó la apertura innecesaria de la cámara climática durante el proceso de estabilización, con el fin de minimizar perturbaciones térmicas y asegurar condiciones isotermas dentro del volumen útil.
+\end{enumerate}
+\subsection{Calibración}
+\subsubsection{Calibración de temperatura}
+La calibración de temperatura del sensor SHT-3X se realizó mediante el método de comparación directa en un medio isotermo controlado, utilizando como referencia un patrón 3M con trazabilidad metrológica vigente.
+
+\subsubsection*{Ubicación de los sensores}
+
+El patrón 3M y el sensor SHT-3X fueron colocados en la zona central del volumen útil de la cámara climática, asegurando:
+
+\begin{itemize}
+    \item Igual profundidad de inmersión para ambos sensores.
+    \item Ausencia de contacto entre ellos.
+    \item Distancia adecuada respecto a paredes internas y superficies metálicas.
+\end{itemize}
+
+Esta disposición permitió minimizar errores asociados a conducción térmica y gradientes espaciales de temperatura.
+
+\subsubsection*{Puntos de calibración}
+
+La calibración se efectuó en los siguientes puntos dentro del rango operativo definido para la prueba ($15\,^{\circ}\mathrm{C}$ a $60\,^{\circ}\mathrm{C}$):
+
+\begin{center}
+$15\,^{\circ}\mathrm{C}$, $25\,^{\circ}\mathrm{C}$, $35\,^{\circ}\mathrm{C}$, $45\,^{\circ}\mathrm{C}$, $60\,^{\circ}\mathrm{C}$.
+\end{center}
+
+Para cada punto se programó la cámara climática al valor nominal correspondiente y se esperó hasta alcanzar régimen estable. La estabilidad se verificó observando la variación temporal del patrón durante un intervalo mínimo de 15 minutos.
+
+\subsubsection*{Secuencia de medición}
+
+Una vez alcanzada la estabilidad térmica, se realizó la siguiente secuencia de medición en cada punto:
+
+\begin{enumerate}
+    \item Primera lectura del patrón: $t_{p1}$.
+    \item Primera lectura del sensor SHT-3X: $t_{x1}$.
+    \item Segunda lectura del patrón: $t_{p2}$.
+    \item Segunda lectura del sensor SHT-3X: $t_{x2}$.
+\end{enumerate}
+
+El valor de referencia de temperatura se determinó como el promedio de las lecturas del patrón:
+
+\begin{equation}
+t_{\mathrm{ref}} = \frac{t_{p1} + t_{p2}}{2}
+\end{equation}
+
+La lectura media del sensor bajo calibración se calculó como:
+
+\begin{equation}
+t_{x} = \frac{t_{x1} + t_{x2}}{2}
+\end{equation}
+
+\subsubsection*{Cálculo de la corrección}
+
+La corrección de temperatura del sensor SHT-3X en cada punto se obtuvo mediante:
+
+\begin{equation}
+C_t*=t_{ref}-t_x+A
+\end{equation}
+
+\subsubsection*{Evaluación de repetibilidad}
+
+Al finalizar la secuencia completa de puntos, se repitió el punto nominal de $35\,^{\circ}\mathrm{C}$ con el fin de evaluar la repetibilidad del sensor. La diferencia entre las correcciones obtenidas en condiciones nominales se utilizó como estimación del componente de repetibilidad del instrumento.
+\subsubsection{Calibración de Humedad Relativa}
+
+La calibración de humedad relativa del sensor SHT-3X se realizó mediante el método de comparación directa en un medio isotermo con control simultáneo de temperatura y humedad, utilizando como referencia un patrón 3M con certificado de calibración vigente y trazabilidad metrológica.
+
+\subsubsection*{Ubicación de los sensores}
+
+El patrón 3M y el sensor SHT-3X fueron ubicados en la zona central del volumen útil de la cámara climática, asegurando:
+
+\begin{itemize}
+    \item Igual profundidad de inmersión.
+    \item Ausencia de contacto entre sensores.
+    \item Separación adecuada respecto a paredes internas.
+\end{itemize}
+
+\subsubsection*{Secado previo}
+
+Previo al inicio de las mediciones, el sensor SHT-3X fue sometido a un proceso de secado consistente en mantener la cámara en una humedad relativa cercana al límite inferior del intervalo de operación (aproximadamente 10 \%HR) durante un periodo mínimo de 3 horas. Este procedimiento permitió estabilizar la respuesta del sensor y reducir efectos de histéresis.
+
+\subsubsection*{Puntos de calibración}
+
+La calibración se realizó a temperatura fija de $25\,^{\circ}\mathrm{C}$ en los siguientes puntos de humedad relativa, dentro del intervalo de 10 \%HR a 90 \%HR:
+
+\begin{center}
+10 \%HR,\; 30 \%HR,\; 50 \%HR,\; 70 \%HR,\; 90 \%HR.
+\end{center}
+
+En cada punto se esperó hasta alcanzar régimen estable, verificando que la variación temporal del patrón se mantuviera dentro de los límites de estabilidad del generador durante un intervalo mínimo de 15 minutos.
+
+\subsubsection*{Secuencia de medición}
+
+En cada punto de calibración se realizó la siguiente secuencia:
+
+\begin{enumerate}
+    \item Primera lectura del patrón: $h_{p1}$.
+    \item Primera lectura del sensor SHT-3X: $h_{x1}$.
+    \item Segunda lectura del patrón: $h_{p2}$.
+    \item Segunda lectura del sensor SHT-3X: $h_{x2}$.
+\end{enumerate}
+
+El valor de referencia de humedad relativa se determinó como:
+
+\begin{equation}
+h_{\mathrm{ref}} = \frac{h_{p1} + h_{p2}}{2}
+\end{equation}
+
+La lectura media del sensor bajo calibración se calculó como:
+
+\begin{equation}
+h_{x} = \frac{h_{x1} + h_{x2}}{2}
+\end{equation}
+
+\subsubsection*{Cálculo de la corrección}
+
+La corrección de humedad relativa en cada punto se obtuvo mediante:
+
+\begin{equation}
+C_{h} = h_{\mathrm{ref}} - h_{x} + A
+\end{equation}
+
+\subsubsection*{Evaluación de repetibilidad}
+
+Al finalizar la secuencia completa de puntos, se repitió el punto nominal de 50 \%HR para evaluar la repetibilidad del sensor. La diferencia entre las correcciones obtenidas en condiciones nominales se utilizó como estimación del componente de repetibilidad del instrumento.
+
+\subsection{Procesamiento de datos}
+
+Todo el procedimiento descrito a continuación puede ser realizado en las hojas de Excel en las cuales se anotaron los valores de indicación.
+
+\subsubsection*{Cálculo de la incertidumbre expandida por el método GUM}
+
+Para cada punto de calibración, la incertidumbre debe estimarse de acuerdo con la \textit{Guide to the Expression of Uncertainty in Measurement} (GUM), partiendo del modelo matemático de la corrección. En forma general, para temperatura o humedad relativa, el mensurando puede escribirse como:
+
+\begin{equation}
+C = x_{\mathrm{ref}} - x + \delta_{x,res} + \delta_{r} + \delta_{cert} + \delta_{deriva} + \delta_{grad,t} + \delta_{grad,e}
+\end{equation}
+
+En esta expresión, $x$ representa la magnitud de interés; para calibración de temperatura se toma $x=t$ y para calibración de humedad relativa se toma $x=h$. Asimismo, $x_{\mathrm{ref}}$ es el valor medio indicado por el patrón y $x$ es el valor medio indicado por el calibrando, calculados como:
+
+\begin{equation}
+x_{\mathrm{ref}} = \frac{x_{p1}+x_{p2}}{2}
+\end{equation}
+
+\begin{equation}
+x = \frac{x_{1}+x_{2}}{2}
+\end{equation}
+
+Una vez definido el modelo, cada término de entrada debe expresarse como incertidumbre estándar. En el método GUM, las contribuciones se clasifican en evaluaciones de tipo A y de tipo B.
+
+\paragraph{Contribución tipo A.} La repetibilidad se estima a partir de mediciones repetidas en el mismo punto nominal. Si se dispone de $n$ correcciones repetidas $C_{j}$, primero se calcula la desviación estándar experimental:
+
+\begin{equation}
+s(C) = \sqrt{\frac{\sum_{j=1}^{n}\left(C_{j}-\overline{C}\right)^{2}}{n-1}}
+\end{equation}
+
+Luego, la incertidumbre estándar asociada a la repetibilidad se obtiene como:
+
+\begin{equation}
+u(\delta_{r}) = \frac{s(C)}{\sqrt{n}}
+\end{equation}
+
+\paragraph{Contribuciones tipo B.} Las fuentes restantes se evalúan a partir de certificados, especificaciones del instrumento y estudios de caracterización del medio. Las expresiones mínimas que deben utilizarse son las siguientes:
+
+\begin{equation}
+u(\delta_{x,res}) = \frac{d}{\sqrt{12}}
+\end{equation}
+
+siendo $d$ la resolución del calibrando, bajo el supuesto de distribución rectangular en el intervalo $\pm d/2$.
+
+\begin{equation}
+u(\delta_{cert}) = \frac{U_{cert}}{k_{cert}}
+\end{equation}
+
+siendo $U_{cert}$ la incertidumbre expandida reportada en el certificado del patrón y $k_{cert}$ su factor de cobertura.
+
+\begin{equation}
+u(\delta_{deriva}) = \frac{D}{\sqrt{3}}
+\end{equation}
+
+cuando $D$ representa el límite máximo esperado de deriva con distribución rectangular en el intervalo $\pm D$.
+
+\begin{equation}
+u(\delta_{grad,t}) = \frac{\Delta_{t}}{2\sqrt{3}}
+\end{equation}
+
+\begin{equation}
+u(\delta_{grad,e}) = \frac{\Delta_{e}}{2\sqrt{3}}
+\end{equation}
+
+siendo $\Delta_{t}$ el recorrido total observado por gradiente temporal y $\Delta_{e}$ el recorrido total observado por gradiente espacial del medio isotérmico.
+
+Si alguna fuente adicional es significativa, por ejemplo la resolución del patrón o una contribución propia del sistema de adquisición, debe incorporarse al modelo siguiendo el mismo criterio y expresarse también como incertidumbre estándar.
+
+Bajo el supuesto usual de independencia entre las variables de entrada y dado que los coeficientes de sensibilidad del modelo son iguales a $\pm 1$, la incertidumbre estándar combinada se calcula mediante la suma cuadrática de las contribuciones:
+
+\begin{equation}
+u(x_{\mathrm{ref}})=\frac{s(x_{p})}{\sqrt{n_{p}}}, \qquad u(x)=\frac{s(x)}{\sqrt{n_{x}}}
+\end{equation}
+
+siempre que dichas contribuciones se evalúen directamente a partir de lecturas repetidas del patrón y del calibrando, respectivamente.
+
+\begin{equation}
+u_{c}(C)=\sqrt{u^{2}(x_{\mathrm{ref}})+u^{2}(x)+u^{2}(\delta_{x,res})+u^{2}(\delta_{r})+u^{2}(\delta_{cert})+u^{2}(\delta_{deriva})+u^{2}(\delta_{grad,t})+u^{2}(\delta_{grad,e})}
+\end{equation}
+
+En una aplicación práctica, la repetibilidad puede incorporarse directamente mediante $u(\delta_{r})$ o bien a partir de la dispersión de las lecturas empleadas para estimar $x_{\mathrm{ref}}$ y $x$; sin embargo, no debe contabilizarse dos veces la misma fuente de variación.
+
+Finalmente, la incertidumbre expandida se obtiene multiplicando la incertidumbre estándar combinada por un factor de cobertura $k=2$:
+
+\begin{equation}
+U = k\,u_{c}(C) = 2\,u_{c}(C)
+\end{equation}
+
+El valor anterior corresponde, en condiciones normales de aplicación del método GUM, a un nivel de confianza de aproximadamente el 95 \%. Por tanto, el resultado de calibración en cada punto debe reportarse como:
+
+\begin{equation}
+C \pm U \qquad \text{con } k=2
+\end{equation}
+
+En términos operativos, el cálculo puede realizarse siguiendo esta secuencia mínima: definir el modelo de corrección, calcular cada incertidumbre estándar individual, combinar las contribuciones por suma cuadrática y, por último, multiplicar por $k=2$ para obtener la incertidumbre expandida reportable.
+
+\nocite{*}
+
+\printbibliography
+
+
+\section{Anexos}
+
+
+
+\newpage
+
+
+\newpage
+ 
+\end{document}
