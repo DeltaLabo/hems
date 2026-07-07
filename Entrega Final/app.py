@@ -928,16 +928,67 @@ if st.session_state.authenticated:
             if df_filtrado.empty:
                 st.warning(f"⚠️ No hay datos entre {st.session_state['fecha_inicio'].strftime('%d/%m/%Y')} y {st.session_state['fecha_fin'].strftime('%d/%m/%Y')}.")
             else:
-                # ✅ Solo tabla, sin multiselect ni gráficas
                 df_tabla = df_filtrado[FIELD7_COLS].copy()
                 df_tabla.columns = [
                     f"{FIELD7_LABELS[k][0]} ({FIELD7_LABELS[k][1]})" for k in FIELD7_COLS
                 ]
-                df_tabla.index = df_tabla.index.strftime("%d/%m/%Y %H:%M:%S")
-                df_tabla.index.name = "Fecha y Hora"
+                df_tabla.insert(0, "Fecha y Hora", df_filtrado.index.strftime("%d/%m/%Y %H:%M:%S"))
+                df_tabla = df_tabla.reset_index(drop=True)
 
-                with st.expander("📋 Ver tabla de datos completa"):
-                    st.dataframe(df_tabla, width='stretch')
+                with st.expander("📋 Ver tabla de datos completa", expanded=True):
+                    st.write("☑️ Marca (checkbox) exactamente **dos filas** para compararlas en una gráfica.")
+                    seleccion = st.dataframe(
+                        df_tabla,
+                        width='stretch',
+                        hide_index=True,
+                        on_select="rerun",
+                        selection_mode="multi-row",
+                        key="tabla_historial",
+                    )
+
+                filas_sel = seleccion["selection"]["rows"] if seleccion else []
+
+                st.subheader("🔍 Comparación de Registros")
+                if len(filas_sel) < 2:
+                    st.info("Selecciona dos filas en la tabla de arriba para compararlas.")
+                elif len(filas_sel) > 2:
+                    st.warning("Por favor selecciona solo dos filas para comparar.")
+                else:
+                    idx1, idx2 = sorted(filas_sel)
+                    registro1 = df_filtrado.iloc[idx1]
+                    registro2 = df_filtrado.iloc[idx2]
+                    etiqueta1 = df_filtrado.index[idx1].strftime("%d/%m/%Y %H:%M:%S")
+                    etiqueta2 = df_filtrado.index[idx2].strftime("%d/%m/%Y %H:%M:%S")
+
+                    filas_comparacion = []
+                    for key, (label, unidad) in FIELD7_LABELS.items():
+                        filas_comparacion.append({"Variable": f"{label} ({unidad})", "Registro": etiqueta1, "Valor": registro1[key]})
+                        filas_comparacion.append({"Variable": f"{label} ({unidad})", "Registro": etiqueta2, "Valor": registro2[key]})
+                    df_comparacion = pd.DataFrame(filas_comparacion)
+
+                    grafico_comparacion = (
+                        alt.Chart(df_comparacion)
+                        .mark_bar()
+                        .encode(
+                            x=alt.X("Registro:N", title=None, axis=alt.Axis(labels=False, ticks=False)),
+                            y=alt.Y("Valor:Q", title=None),
+                            color=alt.Color("Registro:N", title="Registro"),
+                            tooltip=["Variable", "Registro", alt.Tooltip("Valor:Q", format=".2f")],
+                        )
+                        .properties(width=90, height=220)
+                        .facet(column=alt.Column("Variable:N", title=None, header=alt.Header(labelAngle=-40, labelPadding=8)))
+                        .resolve_scale(y="independent")
+                    )
+                    st.altair_chart(grafico_comparacion, use_container_width=False)
+
+                    st.write("### 📋 Detalle numérico")
+                    tabla_resumen = pd.DataFrame({
+                        "Variable": [f"{l} ({u})" for l, u in FIELD7_LABELS.values()],
+                        etiqueta1: [registro1[k] for k in FIELD7_COLS],
+                        etiqueta2: [registro2[k] for k in FIELD7_COLS],
+                    })
+                    tabla_resumen["Diferencia"] = tabla_resumen[etiqueta2] - tabla_resumen[etiqueta1]
+                    st.dataframe(tabla_resumen, hide_index=True, width='stretch')
 
         else:
             st.warning("Presiona el botón para cargar datos del canal ThingSpeak.")
