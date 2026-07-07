@@ -5,30 +5,41 @@ Heat exposure monitoring and alert system HEMS
 
 ### Developers
 
-* [Juan J. Rojas](mailto:juan.rojas@itcr.ac.cr) 
+* [Juan J. Rojas Hernández](mailto:juan.rojas@itcr.ac.cr) 
 
-* [Adrián Gutierrez](mailto:a.gutierrez@itcr.ac.cr)
+* [Adrián Gutierrez Fuentes](mailto:a.gutierrez@itcr.ac.cr)
 
-* [Priscilla Alfaro](mailto:priscillalfaro01@gmail.com)
+* Priscilla Alfaro Ugalde
 
-* [Esteban Cañizales](mailto:esteban2802@estudiantec.cr)
+* Diego Brenes Poveda
 
-* [Angie Cubillo](mailto:ancubillo@estudiantec.cr)
+* Esteban Cañizales
 
-* [Kaleb Granados](mailto:kalebgranac13@estudiantec.cr)
+* Felipe Céspedes
 
-* [Luis Ledezma](mailto:lledezma13luis@gmail.com)
+* Angie Cubillo Solano
 
-* [Felipe Montero](mailto:femontero@estudiantec.cr)
+* Kaleb Granados Acuña
 
-* [Carlos Navarro](mailto:canavarro@estudiantec.cr)
+* Joel Gamboa Guillén
 
-* [Nicole Prado](mailto:nicoleprado@estudiantec.cr)
+* Luis Ledezma Duarte
 
-* [Bryan Suazo](mailto:bsuazo@estudiantec.cr)
+* Carlos D. Murillo Zamora
+
+* Aymara Marín Corrales
+
+* Felipe Montero Castillo
+
+* Carlos Navarro Mora
+
+* Nicole Prado Morales
+
+* Alejandro Rodríguez
+
+* Bryan Suazo Fonseca
 
 * [Roy David Moya](mailto:roy.d.777@estudiantec.cr)
-
 
 
 ### What is this repository for? ###

@@ -1,0 +1,194 @@
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish]{babel}
+\usepackage[top=18mm,bottom=18mm,left=18mm,right=18mm]{geometry}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage[table]{xcolor}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{amsmath}
+\usepackage{siunitx}
+\usepackage{graphicx}
+
+\sisetup{output-decimal-marker={,}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\renewcommand{\arraystretch}{1.2}
+\setlength{\tabcolsep}{3pt}
+\definecolor{labelgray}{gray}{0.88}
+\definecolor{headerblue}{RGB}{38,75,120}
+
+\newcommand{\campo}[1]{\textit{#1}}
+\newcommand{\certnum}{CTD-SHT-0001}
+\newcommand{\fechaemision}{\campo{7 de junio de 2026}}
+\newcommand{\laboratorio}{\campo{Laboratorio Delta}}
+\newcommand{\direccionlab}{\campo{1 km al sur de la Basílica de los Ángeles, C. 15, provincia de Cartago, Cartago, Dulce Nombre, 30109}}
+\newcommand{\telefonolab}{\campo{2552 5333}}
+\newcommand{\correolab}{\campo{juan.rojas@itcr.ac.cr}}
+
+\newcolumntype{L}{>{\bfseries\columncolor{labelgray}}p{0.30\textwidth}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}p{0.09\textwidth}}
+
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Certificado N.\textsuperscript{o}: \certnum}
+\lhead{\laboratorio}
+\cfoot{Página \thepage\ de \pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+\begin{document}
+
+\begin{minipage}[t]{0.46\textwidth}
+    {\Large\bfseries\color{headerblue}\laboratorio}\par
+    \vspace{1mm}
+    {\small .}\par
+    \vspace{3mm}
+    \includegraphics[width=22mm]{../logo delta.png}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+    {\LARGE\bfseries CERTIFICADO DE\\ CALIBRACIÓN}\par
+    \vspace{2mm}
+    \textbf{Certificado N.\textsuperscript{o}:} \certnum\par
+    \textbf{Página:} \thepage\ de \pageref{LastPage}\par
+    \textbf{Fecha de emisión:} \fechaemision
+\end{minipage}
+
+\vspace{6mm}
+
+\section*{1. Identificación del laboratorio}
+\begin{tabularx}{\textwidth}{|L|Y|}
+\hline
+Laboratorio & \laboratorio \\ \hline
+Dirección & \direccionlab \\ \hline
+Teléfono & \telefonolab \\ \hline
+Correo electrónico & \correolab \\ \hline
+Responsables técnicos & \campo{Roy David Moya Serrano, Felipe Montero Castillo} \\ \hline
+\end{tabularx}
+
+\textit{Este certificado se emite para documentar los resultados de calibración del instrumento identificado. No se establece criterio de rechazo para el instrumento.}
+
+\section*{2. Identificación del ítem calibrado}
+\begin{tabularx}{\textwidth}{|L|Y|}
+\hline
+Instrumento & Sensor digital de temperatura \\ \hline
+Marca & \campo{Sensirion} \\ \hline
+Modelo & SHT-3X / \campo{SHT31-DIS-B} \\ \hline
+Número de serie & \campo{SHT-3x-0001} \\ \hline
+Intervalo de indicación & \campo{$-40$ a $125\,^{\circ}\mathrm{C}$} \\ \hline
+Resolución & $0,015\,^{\circ}\mathrm{C}$ \\ \hline
+Unidad de indicación & $^{\circ}\mathrm{C}$ \\ \hline
+Uso declarado & \campo{Monitoreo de temperatura de globo para evaluación de estrés térmico en campo} \\ \hline
+\end{tabularx}
+
+Durante la calibración no se observaron comportamientos inestables, daños visibles o ajustes previos.
+
+\section*{3. Lugar y fechas de calibración}
+\begin{tabularx}{\textwidth}{|L|Y|}
+\hline
+Lugar de calibración & \campo{Instalaciones permanentes del laboratorio, Escuela de Mantenimiento Industrial, Tecnológico de Costa Rica} \\ \hline
+Fecha de calibración & \campo{25 de junio de 2026} \\ \hline
+Fecha de emisión del certificado & \fechaemision \\ \hline
+\end{tabularx}
+
+Los resultados indicados en este certificado corresponden al estado del instrumento en la fecha de calibración.
+
+\section*{4. Método de calibración utilizado}
+La calibración se realizó por comparación directa entre el instrumento bajo calibración y un patrón de referencia trazable al Sistema Internacional de Unidades. El sensor se colocó junto con el patrón en la zona útil del medio isotérmico y se registraron las lecturas una vez alcanzada la estabilidad.
+
+Procedimiento utilizado: \campo{PCTH-001}, ``Calibración de termómetros digitales y sensores de temperatura y humedad'', versión \campo{1}. Para este certificado, el procedimiento se aplicó únicamente a la magnitud de temperatura; no se ejecutó la calibración ni el cálculo de humedad relativa.
+
+El intervalo de operación de la prueba fue de $17\,^{\circ}\mathrm{C}$ a $60\,^{\circ}\mathrm{C}$ para temperatura. Se realizó un ajuste de curva experimental del instrumento.
+
+\section*{5. Condiciones ambientales y magnitudes de influencia}
+\begin{tabularx}{\textwidth}{|Y|Y|Y|}
+\hline
+\rowcolor{labelgray}\textbf{Magnitud de influencia} & \textbf{Valor medio durante la calibración} & \textbf{Incertidumbre expandida} \\ \hline
+Temperatura ambiente & \campo{24,00 $^{\circ}$C} & \campo{$\pm$ 0,2 $^{\circ}$C} \\ \hline
+Humedad relativa ambiente & \campo{87,00 \%HR} & \campo{$\pm$ 1,3 \%HR} \\ \hline
+\end{tabularx}
+
+La incertidumbre de estas magnitudes se declara con factor de cobertura $k=2$, para una probabilidad de cobertura aproximada del 95 \%.
+
+\section*{6. Patrones y equipos utilizados}
+\begin{tabularx}{\textwidth}{|Y|Y|Y|Y|Y|}
+\hline
+\rowcolor{labelgray}\textbf{Equipo patrón / auxiliar} & \textbf{Código interno} & \textbf{Certificado de calibración} & \textbf{Vigencia} & \textbf{Trazabilidad} \\ \hline
+Termohigrómetro patrón 3M QUESTemp 44 & \campo{TQQ120013} & \campo{LCM 05410924} & \campo{2025-09-01} & SI, mediante \campo{LCM 05410924, Costa Rica} \\ \hline
+\end{tabularx}
+
+La trazabilidad metrológica de los resultados se asegura mediante una cadena ininterrumpida de calibraciones hacia el Sistema Internacional de Unidades, con incertidumbres declaradas y patrones con certificados vigentes.
+
+\section*{7. Resultados de calibración}
+El error de indicación se calcula como:
+\begin{equation}
+E = I_x - x_{\mathrm{ref}}
+\end{equation}
+
+La corrección se calcula como:
+\begin{equation}
+C = x_{\mathrm{ref}} - I_x
+\end{equation}
+
+donde $I_x$ es la indicación del instrumento bajo calibración y $x_{\mathrm{ref}}$ es el valor de referencia indicado por el patrón.
+\newpage
+\subsection*{7.1 Resultados de temperatura}
+{\scriptsize
+\begin{longtable}{|C|C|C|C|C|C|C|}
+\hline
+\rowcolor{labelgray}\textbf{Punto} & \textbf{Ind.} & \textbf{Ref.} & \textbf{Error} & \textbf{Corr.} & \textbf{$U$} & \textbf{$k$} \\ \hline
+$17\,^{\circ}\mathrm{C}$ & $18,06$ & $17,95$ & $0,11$ & $-0,11$ & $0,8998009$ & 2 \\ \hline
+$25\,^{\circ}\mathrm{C}$ & $25,74$ & $26,15$ & $-0,41$ & $0,41$ & $1,20754917$ & 2 \\ \hline
+$35\,^{\circ}\mathrm{C}$ & $37,235$ & $42,7$ & $-5,465$ & $5,465$ & $1,05757978$ & 2 \\ \hline
+$45\,^{\circ}\mathrm{C}$ & $48,04$ & $55,95$ & $-7,91$ & $7,91$ & $1,03100679$ & 2 \\ \hline
+$60\,^{\circ}\mathrm{C}$ & $59,68$ & $69,2$ & $-9,52$ & $9,52$ & $0,95361156$ & 2 \\ \hline
+\end{longtable}
+}
+La incertidumbre expandida reportada se declara como la incertidumbre estándar combinada multiplicada por el factor de cobertura $k=2$, correspondiente a una probabilidad de cobertura aproximada del 95 \%.
+
+\section*{8. Evaluación de incertidumbre}
+La incertidumbre se evaluó conforme al método GUM, considerando como mínimo las siguientes contribuciones: resolución del calibrando, repetibilidad, incertidumbre del certificado del patrón, deriva del patrón, gradiente temporal del medio y gradiente espacial del medio.
+
+\begin{equation}
+u_c(C)=\sqrt{u^2(x_{\mathrm{ref}})+u^2(I_x)+u^2(\delta_{x,res})+u^2(\delta_r)+u^2(\delta_{cert})+u^2(\delta_{deriva})+u^2(\delta_{grad,t})+u^2(\delta_{grad,e})}
+\end{equation}
+
+\begin{equation}
+U = 2\,u_c(C)
+\end{equation}
+
+
+donde $E$ es el error de indicación.
+
+\section*{9. Observaciones técnicas}
+Durante la calibración, el comportamiento del sensor de temperatura respecto al patrón fue estable y no presentó cambios bruscos ni variaciones significativas.
+
+\section*{10. Restricciones del certificado}
+Los resultados de este certificado aplican únicamente al instrumento identificado en la sección 2 y bajo las condiciones en que fue calibrado. Este certificado no debe reproducirse parcialmente sin autorización del laboratorio emisor.
+
+\newpage
+\section*{11. Autorización}
+\begin{tabularx}{\textwidth}{X X}
+Calibrado por: & Revisado y autorizado por: \\
+\campo{Felipe Montero Castillo} & \campo{Roy David Moya Serrano} \\
+\campo{Encargado de calibraciones} & \campo{Gestor de proyecto} \\
+\vspace{14mm} & \vspace{14mm} \\
+\rule{0.38\textwidth}{0.4pt} & \rule{0.38\textwidth}{0.4pt} \\
+Firma & Firma autorizada \\
+\end{tabularx}
+
+Fecha de autorización: \campo{8 de junio de 2026}
+
+\vfill
+\begin{center}
+\textit{Fin del certificado}
+\end{center}
+
+\end{document}
