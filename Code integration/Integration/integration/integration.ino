@@ -13,6 +13,7 @@
 #include <SPI.h>
 #include <SdFat.h>
 
+
 #define TINY_GSM_MODEM_SIM7600
 #include <TinyGsmClient.h>
 
@@ -65,6 +66,19 @@ const char * myWriteAPIKey = "W1Y7D3C7TBU7BN4Y";
 
 // Umbral de sobrecorriente
 const float OVERCURRENT_THRESHOLD_mA = 1500.0;
+
+// Anemómetro analógico: A2 corresponde a GPIO3 en XIAO ESP32S3.
+const int PIN_ANEMOMETRO = A2;
+const float VOLTAJE_1 = 0.005;
+const float VELOCIDAD_1 = 0.0;
+const float VOLTAJE_2 = 0.45;
+const float VELOCIDAD_2 = 10.0;
+const int NUM_MUESTRAS = 30;
+const float A_CALIBRACION = 0.8466;
+const float B_CALIBRACION = 2.7535;
+
+// Nuevo esquema de columnas; conserva los datos.csv de versiones anteriores.
+const char DATA_CSV_PATH[] = "datos_anemometro.csv";
 
 // ---------- Flags de disponibilidad de sensores ----------
 bool haveSHT1  = false;
@@ -131,6 +145,8 @@ float   g_envT, g_envP, g_envRH;
 float   g_inaV, g_inaI, g_inaP;
 float   g_inaV_wind, g_inaI_wind, g_inaP_wind;
 float   g_energy_mWh = 0.0;
+float   g_anemometroVoltaje = 0.0;
+float   g_velocidadAire = 0.0; // m/s, calibrada
 bool    g_overCurrent = false;
 bool    g_overCurrent_wind = false;
 uint16_t  g_okFlags = 0;
@@ -140,6 +156,29 @@ String    g_datetime;
 SemaphoreHandle_t xDataSemaphore;
 
 // ---------- Funciones ----------
+float medirVoltaje() {
+  uint32_t sumaMilivoltios = 0;
+  for (int i = 0; i < NUM_MUESTRAS; i++) {
+    sumaMilivoltios += analogReadMilliVolts(PIN_ANEMOMETRO);
+    delay(5);
+  }
+  return (sumaMilivoltios / (float)NUM_MUESTRAS) / 1000.0;
+}
+
+float calcularVelocidadOriginal(float voltaje) {
+  if (VOLTAJE_2 == VOLTAJE_1) return 0.0;
+  float pendiente = (VELOCIDAD_2 - VELOCIDAD_1) / (VOLTAJE_2 - VOLTAJE_1);
+  float velocidad = VELOCIDAD_1 + pendiente * (voltaje - VOLTAJE_1);
+  if (velocidad < 0.0) velocidad = 0.0;
+  return velocidad;
+}
+
+float calibrarVelocidad(float velocidadOriginal) {
+  // Si prácticamente no hay señal, considerar velocidad cero.
+  if (velocidadOriginal <= 0.1) return 0.0;
+  return A_CALIBRACION * velocidadOriginal + B_CALIBRACION;
+}
+
 String getDateTimeString() {
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) return "1970-01-01T00:00:00";
@@ -151,9 +190,9 @@ String getDateTimeString() {
 bool initSD() {
   SPI.begin(MOSI_PIN, MISO_PIN, SCK_PIN, SD_CS);
   if (!sd.begin(SdSpiConfig(SD_CS, SHARED_SPI, SD_SCK_MHZ(25)))) return false;
-  if (!sd.exists("datos.csv")) {
-    if (file.open("datos.csv", O_CREAT | O_WRITE)) {
-      file.println(F("datetime_iso8601,timestamp_ms,sht1_T_C,sht1_RH_pct,sht2_T_C,sht2_RH_pct,uvA,uvB,uvC,env_T_C,env_P_hPa,env_RH_pct,ina_Vbus,ina_current_mA,ina_power_mW,energy_mWh,overcurrent_flag,sensor_ok_flags"));
+  if (!sd.exists(DATA_CSV_PATH)) {
+    if (file.open(DATA_CSV_PATH, O_CREAT | O_WRITE)) {
+      file.println(F("datetime_iso8601,timestamp_ms,sht1_T_C,sht1_RH_pct,sht2_T_C,sht2_RH_pct,uvA,uvB,uvC,env_T_C,env_P_hPa,env_RH_pct,ina_wind_Vbus,ina_wind_current_mA,ina_wind_power_mW,overcurrent_wind_flag,ina_Vbus,ina_current_mA,ina_power_mW,energy_mWh,overcurrent_flag,sensor_ok_flags,anemometro_voltage_V,air_speed_m_s"));
       file.close();
     }
   }
@@ -162,7 +201,7 @@ bool initSD() {
 }
 
 void appendCSV() {
-  if (file.open("datos.csv", O_WRITE | O_APPEND)) {
+  if (file.open(DATA_CSV_PATH, O_WRITE | O_APPEND)) {
     file.print(g_datetime); file.print(',');
     file.print(millis()); file.print(',');
     file.print(g_sht1T, 2); file.print(',');
@@ -184,7 +223,9 @@ void appendCSV() {
     file.print(g_inaP, 3); file.print(',');
     file.print(g_energy_mWh, 3); file.print(',');
     file.print(g_overCurrent ? 1 : 0); file.print(',');
-    file.println(g_okFlags);
+    file.print(g_okFlags); file.print(',');
+    file.print(g_anemometroVoltaje, 3); file.print(',');
+    file.println(g_velocidadAire, 2);
     file.close();
   }
 }
@@ -216,13 +257,15 @@ void appendCSVBatch() {
   line += String(g_inaP, 3) + ",";
   line += String(g_energy_mWh, 3) + ",";
   line += String(g_overCurrent ? 1 : 0) + ",";
-  line += String(g_okFlags);
+  line += String(g_okFlags) + ",";
+  line += String(g_anemometroVoltaje, 3) + ",";
+  line += String(g_velocidadAire, 2);
 
   bufferSD += line + "\n";
   lineCountSD++;
 
   if (lineCountSD >= BATCH_SIZE) {
-    if (file.open("datos.csv", O_WRITE | O_APPEND)) {
+    if (file.open(DATA_CSV_PATH, O_WRITE | O_APPEND)) {
       file.print(bufferSD);
       file.close();
     }
@@ -288,6 +331,7 @@ float buf_envT[BATCH_SIZE], buf_envP[BATCH_SIZE], buf_envRH[BATCH_SIZE];
 float buf_inaV_wind[BATCH_SIZE], buf_inaI_wind[BATCH_SIZE], buf_inaP_wind[BATCH_SIZE];
 float buf_inaV[BATCH_SIZE], buf_inaI[BATCH_SIZE], buf_inaP[BATCH_SIZE];
 float buf_energy[BATCH_SIZE];
+float buf_velocidadAire[BATCH_SIZE];
 
 int sampleIndex = 0;
 
@@ -309,6 +353,7 @@ void addSample() {
   buf_inaI[sampleIndex] = g_inaI;
   buf_inaP[sampleIndex] = g_inaP;
   buf_energy[sampleIndex] = g_energy_mWh;
+  buf_velocidadAire[sampleIndex] = g_velocidadAire;
 
   sampleIndex++;
 
@@ -340,6 +385,8 @@ void sendAveragesToThingSpeak(){
   
   // --- Enviar a ThingSpeak ---
   if (activeClient != nullptr) {
+    // Velocidad calibrada promedio en m/s, independiente del paquete HEX.
+    ThingSpeak.setField(1, avg(buf_velocidadAire));
     ThingSpeak.setField(8, payloadFinal);
     int httpCode = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
     if (httpCode == 200) {
@@ -819,6 +866,8 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);  // Configura el pin como salida
   Serial.begin(115200);
+  analogReadResolution(12);
+  analogSetPinAttenuation(PIN_ANEMOMETRO, ADC_11db);
   Wire.begin();
   SPI.begin(MOSI_PIN, MISO_PIN, SCK_PIN, SD_CS);
 
@@ -898,6 +947,10 @@ void loop() {
   delay(1000);                       // Espera 1 segundo
 
   g_datetime = getDateTimeString();
+
+  // Anemómetro: promedio de 30 lecturas (aproximadamente 150 ms).
+  g_anemometroVoltaje = medirVoltaje();
+  g_velocidadAire = calibrarVelocidad(calcularVelocidadOriginal(g_anemometroVoltaje));
 
   // SHT31 #1
   if (haveSHT1) {
@@ -1003,7 +1056,9 @@ void loop() {
   Serial.print(g_inaP);     Serial.print(',');
   Serial.print(g_energy_mWh); Serial.print(',');
   Serial.print(g_overCurrent ? 1 : 0); Serial.print(',');
-  Serial.println(g_okFlags);
+  Serial.print(g_okFlags); Serial.print(',');
+  Serial.print(g_anemometroVoltaje, 3); Serial.print(',');
+  Serial.println(g_velocidadAire, 2);
 
 
   addSample();
