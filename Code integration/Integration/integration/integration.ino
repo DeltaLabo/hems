@@ -46,9 +46,9 @@ const char * myWriteAPIKey = "W1Y7D3C7TBU7BN4Y";
 // ---------- Definiciones de hardware ----------
 
 // Pines SPI para SD
-#define MOSI_PIN 10
-#define MISO_PIN 9
-#define SCK_PIN  8
+#define MOSI_PIN 9
+#define MISO_PIN 8
+#define SCK_PIN  7
 #define SD_CS    2   // Chip Select de la SD
 
 // Direcciones I2C de sensores
@@ -98,22 +98,28 @@ SdFile file;
 #define NTP_RETRY_TIMEOUT 10000    // 10 segundos
 
 // Coeficientes de calibración (pendiente y offset)
+//SHT31 #1
 float cal_sht1T_m = 1.0, cal_sht1T_b = 0.0;
 float cal_sht1RH_m = 1.0, cal_sht1RH_b = 0.0;
 
+//SHT31 #2
 float cal_sht2T_m = 1.0, cal_sht2T_b = 0.0;
 float cal_sht2RH_m = 1.0, cal_sht2RH_b = 0.0;
 
+//BME280
 float cal_envT_m = 1.0, cal_envT_b = 0.0;
 float cal_envP_m = 1.0, cal_envP_b = 0.0;
 float cal_envRH_m = 1.0, cal_envRH_b = 0.0;
 
-float cal_inaV_m = 1.0, cal_inaV_b = 0.0;
-float cal_inaI_m = 1.0, cal_inaI_b = 0.0;
+//INA219 #1
+float cal_inaV_m = 1.0119, cal_inaV_b = 0.0164;
+float cal_inaI_m = 0.9913, cal_inaI_b = 0.9055;
 
+//INA219 #2
 float cal_inaV_wind_m = 1.0, cal_inaV_wind_b = 0.0;
 float cal_inaI_wind_m = 1.0, cal_inaI_wind_b = 0.0;
 
+//AS7331
 float cal_uvA_m = 1.0, cal_uvA_b = 0.0;
 float cal_uvB_m = 1.0, cal_uvB_b = 0.0;
 float cal_uvC_m = 1.0, cal_uvC_b = 0.0;
