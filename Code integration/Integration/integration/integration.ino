@@ -52,14 +52,14 @@ const char * myWriteAPIKey = "W1Y7D3C7TBU7BN4Y";
 #define SD_CS    2   // Chip Select de la SD
 
 // Direcciones I2C de sensores
-#define SHT31_ADDR_1 0x44
-#define SHT31_ADDR_2 0x45
-#define AS7331_ADDR  0x74
+#define SHT31_ADDR_1 0x44 //Para sensor en bulbo negro
+#define SHT31_ADDR_2 0x45 //Para sensor en seco
+#define AS7331_ADDR  0x74 //Para termocupla
 #define BM_ADDR_1   0x76 //Para BME280 o BMP280
 #define BM_ADDR_2   0x77 //Para BME280 o BMP280, en caso de usar dos, con la segunda opción de direccón física de I2C
-#define INA219_ADDR  0x40
-#define INA219_ADDR_2  0x41
-#define LCD_ADDR 0x27
+#define INA219_ADDR  0x40 //Para INA 1
+#define INA219_ADDR_2  0x41 //Para INA anemómetro
+#define LCD_ADDR 0x27 //Para pantalla LCD
 
 #define LED_BUILTIN 21   // En la mayoría de placas ESP32 el LED está en GPIO2
 
@@ -99,17 +99,17 @@ SdFile file;
 
 // Coeficientes de calibración (pendiente y offset)
 //SHT31 #1
-float cal_sht1T_m = 1.0, cal_sht1T_b = 0.0;
-float cal_sht1RH_m = 1.0, cal_sht1RH_b = 0.0;
+float cal_sht1T_m = 2.4122, cal_sht1T_b = -33.599;
+float cal_sht1RH_m = 1.7746, cal_sht1RH_b = -53.036;
 
 //SHT31 #2
-float cal_sht2T_m = 1.0, cal_sht2T_b = 0.0;
+float cal_sht2T_m = 1.0424, cal_sht2T_b = -1.7566;
 float cal_sht2RH_m = 1.0, cal_sht2RH_b = 0.0;
 
 //BME280
-float cal_envT_m = 1.0, cal_envT_b = 0.0;
+float cal_envT_m = 2.2126, cal_envT_b = -28.563;
 float cal_envP_m = 1.0, cal_envP_b = 0.0;
-float cal_envRH_m = 1.0, cal_envRH_b = 0.0;
+float cal_envRH_m = 1.7211, cal_envRH_b = -58.13;
 
 //INA219 #1
 float cal_inaV_m = 1.0119, cal_inaV_b = 0.0164;
