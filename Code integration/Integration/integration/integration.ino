@@ -13,6 +13,7 @@
 #include <SPI.h>
 #include <SdFat.h>
 
+
 #define TINY_GSM_MODEM_SIM7600
 #include <TinyGsmClient.h>
 
@@ -65,6 +66,19 @@ const char * myWriteAPIKey = "W1Y7D3C7TBU7BN4Y";
 
 // Umbral de sobrecorriente
 const float OVERCURRENT_THRESHOLD_mA = 1500.0;
+
+// Anemómetro analógico: A2 corresponde a GPIO3 en XIAO ESP32S3.
+const int PIN_ANEMOMETRO = A2;
+const float VOLTAJE_1 = 0.005;
+const float VELOCIDAD_1 = 0.0;
+const float VOLTAJE_2 = 0.45;
+const float VELOCIDAD_2 = 10.0;
+const int NUM_MUESTRAS = 30;
+const float A_CALIBRACION = 0.8466;
+const float B_CALIBRACION = 2.7535;
+
+// Nuevo esquema de columnas; conserva los datos.csv de versiones anteriores.
+const char DATA_CSV_PATH[] = "datos_anemometro.csv";
 
 // ---------- Flags de disponibilidad de sensores ----------
 bool haveSHT1  = false;
@@ -131,6 +145,8 @@ float   g_envT, g_envP, g_envRH;
 float   g_inaV, g_inaI, g_inaP;
 float   g_inaV_wind, g_inaI_wind, g_inaP_wind;
 float   g_energy_mWh = 0.0;
+float   g_anemometroVoltaje = 0.0;
+float   g_velocidadAire = 0.0; // m/s, calibrada
 bool    g_overCurrent = false;
 bool    g_overCurrent_wind = false;
 uint16_t  g_okFlags = 0;
@@ -140,6 +156,29 @@ String    g_datetime;
 SemaphoreHandle_t xDataSemaphore;
 
 // ---------- Funciones ----------
+float medirVoltaje() {
+  uint32_t sumaMilivoltios = 0;
+  for (int i = 0; i < NUM_MUESTRAS; i++) {
+    sumaMilivoltios += analogReadMilliVolts(PIN_ANEMOMETRO);
+    delay(5);
+  }
+  return (sumaMilivoltios / (float)NUM_MUESTRAS) / 1000.0;
+}
+
+float calcularVelocidadOriginal(float voltaje) {
+  if (VOLTAJE_2 == VOLTAJE_1) return 0.0;
+  float pendiente = (VELOCIDAD_2 - VELOCIDAD_1) / (VOLTAJE_2 - VOLTAJE_1);
+  float velocidad = VELOCIDAD_1 + pendiente * (voltaje - VOLTAJE_1);
+  if (velocidad < 0.0) velocidad = 0.0;
+  return velocidad;
+}
+
+float calibrarVelocidad(float velocidadOriginal) {
+  // Si prácticamente no hay señal, considerar velocidad cero.
+  if (velocidadOriginal <= 0.1) return 0.0;
+  return A_CALIBRACION * velocidadOriginal + B_CALIBRACION;
+}
+
 String getDateTimeString() {
   struct tm timeinfo;
   if (!getLocalTime(&timeinfo)) return "1970-01-01T00:00:00";
@@ -151,9 +190,9 @@ String getDateTimeString() {
 bool initSD() {
   SPI.begin(MOSI_PIN, MISO_PIN, SCK_PIN, SD_CS);
   if (!sd.begin(SdSpiConfig(SD_CS, SHARED_SPI, SD_SCK_MHZ(25)))) return false;
-  if (!sd.exists("datos.csv")) {
-    if (file.open("datos.csv", O_CREAT | O_WRITE)) {
-      file.println(F("datetime_iso8601,timestamp_ms,sht1_T_C,sht1_RH_pct,sht2_T_C,sht2_RH_pct,uvA,uvB,uvC,env_T_C,env_P_hPa,env_RH_pct,ina_Vbus,ina_current_mA,ina_power_mW,energy_mWh,overcurrent_flag,sensor_ok_flags"));
+  if (!sd.exists(DATA_CSV_PATH)) {
+    if (file.open(DATA_CSV_PATH, O_CREAT | O_WRITE)) {
+      file.println(F("datetime_iso8601,timestamp_ms,sht1_T_C,sht1_RH_pct,sht2_T_C,sht2_RH_pct,uvA,uvB,uvC,env_T_C,env_P_hPa,env_RH_pct,ina_wind_Vbus,ina_wind_current_mA,ina_wind_power_mW,overcurrent_wind_flag,ina_Vbus,ina_current_mA,ina_power_mW,energy_mWh,overcurrent_flag,sensor_ok_flags,anemometro_voltage_V,air_speed_m_s"));
       file.close();
     }
   }
@@ -162,7 +201,7 @@ bool initSD() {
 }
 
 void appendCSV() {
-  if (file.open("datos.csv", O_WRITE | O_APPEND)) {
+  if (file.open(DATA_CSV_PATH, O_WRITE | O_APPEND)) {
     file.print(g_datetime); file.print(',');
     file.print(millis()); file.print(',');
     file.print(g_sht1T, 2); file.print(',');
@@ -184,7 +223,9 @@ void appendCSV() {
     file.print(g_inaP, 3); file.print(',');
     file.print(g_energy_mWh, 3); file.print(',');
     file.print(g_overCurrent ? 1 : 0); file.print(',');
-    file.println(g_okFlags);
+    file.print(g_okFlags); file.print(',');
+    file.print(g_anemometroVoltaje, 3); file.print(',');
+    file.println(g_velocidadAire, 2);
     file.close();
   }
 }
@@ -216,13 +257,15 @@ void appendCSVBatch() {
   line += String(g_inaP, 3) + ",";
   line += String(g_energy_mWh, 3) + ",";
   line += String(g_overCurrent ? 1 : 0) + ",";
-  line += String(g_okFlags);
+  line += String(g_okFlags) + ",";
+  line += String(g_anemometroVoltaje, 3) + ",";
+  line += String(g_velocidadAire, 2);
 
   bufferSD += line + "\n";
   lineCountSD++;
 
   if (lineCountSD >= BATCH_SIZE) {
-    if (file.open("datos.csv", O_WRITE | O_APPEND)) {
+    if (file.open(DATA_CSV_PATH, O_WRITE | O_APPEND)) {
       file.print(bufferSD);
       file.close();
     }
@@ -288,6 +331,7 @@ float buf_envT[BATCH_SIZE], buf_envP[BATCH_SIZE], buf_envRH[BATCH_SIZE];
 float buf_inaV_wind[BATCH_SIZE], buf_inaI_wind[BATCH_SIZE], buf_inaP_wind[BATCH_SIZE];
 float buf_inaV[BATCH_SIZE], buf_inaI[BATCH_SIZE], buf_inaP[BATCH_SIZE];
 float buf_energy[BATCH_SIZE];
+float buf_velocidadAire[BATCH_SIZE];
 
 int sampleIndex = 0;
 
@@ -309,6 +353,7 @@ void addSample() {
   buf_inaI[sampleIndex] = g_inaI;
   buf_inaP[sampleIndex] = g_inaP;
   buf_energy[sampleIndex] = g_energy_mWh;
+  buf_velocidadAire[sampleIndex] = g_velocidadAire;
 
   sampleIndex++;
 
@@ -340,6 +385,8 @@ void sendAveragesToThingSpeak(){
   
   // --- Enviar a ThingSpeak ---
   if (activeClient != nullptr) {
+    // Velocidad calibrada promedio en m/s, independiente del paquete HEX.
+    ThingSpeak.setField(1, avg(buf_velocidadAire));
     ThingSpeak.setField(8, payloadFinal);
     int httpCode = ThingSpeak.writeFields(myChannelNumber, myWriteAPIKey);
     if (httpCode == 200) {
@@ -819,6 +866,8 @@ void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);  // Configura el pin como salida
   Serial.begin(115200);
+  analogReadResolution(12);
+  analogSetPinAttenuation(PIN_ANEMOMETRO, ADC_11db);
   Wire.begin();
   SPI.begin(MOSI_PIN, MISO_PIN, SCK_PIN, SD_CS);
 
@@ -898,6 +947,10 @@ void loop() {
   delay(1000);                       // Espera 1 segundo
 
   g_datetime = getDateTimeString();
+
+  // Anemómetro: promedio de 30 lecturas (aproximadamente 150 ms).
+  g_anemometroVoltaje = medirVoltaje();
+  g_velocidadAire = calibrarVelocidad(calcularVelocidadOriginal(g_anemometroVoltaje));
 
   // SHT31 #1
   if (haveSHT1) {
@@ -1003,7 +1056,9 @@ void loop() {
   Serial.print(g_inaP);     Serial.print(',');
   Serial.print(g_energy_mWh); Serial.print(',');
   Serial.print(g_overCurrent ? 1 : 0); Serial.print(',');
-  Serial.println(g_okFlags);
+  Serial.print(g_okFlags); Serial.print(',');
+  Serial.print(g_anemometroVoltaje, 3); Serial.print(',');
+  Serial.println(g_velocidadAire, 2);
 
 
   addSample();
@@ -1013,4 +1068,210 @@ void loop() {
     appendCSVBatch();
   }
   
+}
+
+/*
+Codigo de envio de ubicaciones.
+*/
+
+// 1. Definir el modelo del módem ANTES de incluir la librería
+#define TINY_GSM_MODEM_SIM7600
+#include <TinyGsmClient.h>
+#include <math.h>
+
+// 2. Pines UART (XIAO ESP32-S3)
+#define MODEM_TX_PIN 4  // Conectar al RX del SIM7600
+#define MODEM_RX_PIN 5  // Conectar al TX del SIM7600
+
+// 3. Red celular
+const char apn[]      = "internet.la";
+const char gprsUser[] = "";
+const char gprsPass[] = "";
+
+// 4. ThingSpeak
+const char server[]      = "api.thingspeak.com";
+const int  port          = 80;
+const char writeApiKey[] = "W1Y7D3C7TBU7BN4Y";
+
+// ThingSpeak (cuenta gratuita) exige mínimo 15 s entre envíos
+const unsigned long SEND_INTERVAL = 60000UL;  // 1 minuto
+unsigned long lastSend = 0;
+
+HardwareSerial SerialAT(1);
+TinyGsm modem(SerialAT);
+TinyGsmClient client(modem);
+
+// ---------- Utilidades de ubicación ----------
+
+// Convierte formato NMEA (ddmm.mmmm) a grados decimales
+double nmeaToDecimal(double nmea, bool negative) {
+  int degrees = (int)(nmea / 100.0);
+  double minutes = nmea - (degrees * 100.0);
+  double decimal = degrees + (minutes / 60.0);
+  return negative ? -decimal : decimal;
+}
+
+// Ubicación por GPS/GNSS del SIM7600 (la más precisa, requiere antena GNSS y cielo despejado)
+bool getGNSS(double &lat, double &lon) {
+  modem.sendAT("+CGPSINFO");
+  if (modem.waitResponse(2000L, "+CGPSINFO:") != 1) return false;
+  String data = SerialAT.readStringUntil('\n');
+  data.trim();
+  modem.waitResponse();
+
+  // Sin fijación satelital llega vacío: ",,,,,,,,"
+  if (data.length() < 10 || data.startsWith(",")) return false;
+
+  // Formato: lat,N/S,lon,E/W,fecha,hora,alt,vel,rumbo
+  int i1 = data.indexOf(',');
+  int i2 = data.indexOf(',', i1 + 1);
+  int i3 = data.indexOf(',', i2 + 1);
+  if (i1 < 0 || i2 < 0 || i3 < 0) return false;
+
+  double latRaw = data.substring(0, i1).toDouble();
+  char   ns     = data.charAt(i1 + 1);
+  double lonRaw = data.substring(i2 + 1, i3).toDouble();
+  char   ew     = data.charAt(i3 + 1);
+
+  lat = nmeaToDecimal(latRaw, ns == 'S');
+  lon = nmeaToDecimal(lonRaw, ew == 'W');  // Costa Rica: longitud negativa (Oeste)
+  return true;
+}
+
+// Ubicación por torres celulares (LBS). Menos precisa, sirve de respaldo.
+// Formato de respuesta SIM7600: +CLBS: <codigo>,<latitud>,<longitud>,<precision>
+bool getLBS(double &lat, double &lon) {
+  modem.sendAT("+CLBS=1");
+  if (modem.waitResponse(15000L, "+CLBS:") != 1) return false;
+  String data = SerialAT.readStringUntil('\n');
+  data.trim();
+
+  int i1 = data.indexOf(',');
+  int i2 = data.indexOf(',', i1 + 1);
+  if (i1 < 0 || i2 < 0) return false;
+  if (data.substring(0, i1).toInt() != 0) return false;  // 0 = éxito
+
+  lat = data.substring(i1 + 1, i2).toDouble();
+  int i3 = data.indexOf(',', i2 + 1);
+  lon = data.substring(i2 + 1, i3 > 0 ? i3 : data.length()).toDouble();
+  return true;
+}
+
+bool getLocation(double &lat, double &lon) {
+  if (getGNSS(lat, lon)) {
+    Serial.println("Ubicación obtenida por GPS.");
+    return true;
+  }
+  Serial.println("Sin fijación GPS. Probando por torres celulares (LBS)...");
+  if (getLBS(lat, lon)) {
+    Serial.println("Ubicación obtenida por torres celulares (aproximada).");
+    return true;
+  }
+  return false;
+}
+
+// ---------- Red ----------
+bool connectNetwork() {
+  Serial.println("Buscando red celular...");
+  if (!modem.waitForNetwork(60000L)) {
+    Serial.println("Error: sin señal de red. ¿Antena LTE conectada?");
+    return false;
+  }
+  Serial.print("Conectando al APN: ");
+  Serial.println(apn);
+  if (!modem.gprsConnect(apn, gprsUser, gprsPass)) {
+    Serial.println("Error: no se pudo abrir la conexión de datos.");
+    return false;
+  }
+  Serial.println("Conexión a Internet establecida.");
+  return true;
+}
+
+// ---------- Envío a ThingSpeak ----------
+bool sendToThingSpeak(double lat, double lon) {
+  Serial.println("Conectando a ThingSpeak...");
+  if (!client.connect(server, port)) {
+    Serial.println("Error conectando al servidor.");
+    return false;
+  }
+
+  String path = String("/update?api_key=") + writeApiKey +
+                "&field6=" + String(lat, 6) +
+                "&field7=" + String(lon, 6);
+
+  client.print(String("GET ") + path + " HTTP/1.1\r\n" +
+               "Host: " + server + "\r\n" +
+               "Connection: close\r\n\r\n");
+
+  String response = "";
+  unsigned long timeout = millis();
+  while (client.connected() && millis() - timeout < 10000L) {
+    while (client.available()) {
+      response += (char)client.read();
+      timeout = millis();
+    }
+  }
+  client.stop();
+
+  // El cuerpo es el ID de la entrada (0 = fallo)
+  int bodyStart = response.indexOf("\r\n\r\n");
+  String body = (bodyStart >= 0) ? response.substring(bodyStart + 4) : "";
+  body.trim();
+  long entryId = body.toInt();
+
+  if (entryId > 0) {
+    Serial.print("Ubicación enviada. Entrada #");
+    Serial.println(entryId);
+    return true;
+  }
+  Serial.println("ThingSpeak rechazó el envío (respuesta 0 o vacía).");
+  Serial.println(response);
+  return false;
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(3000);
+
+  Serial.println("\n--- UBICACIÓN A THINGSPEAK CON SIM7600 ---");
+
+  SerialAT.begin(115200, SERIAL_8N1, MODEM_RX_PIN, MODEM_TX_PIN);
+  delay(3000);
+
+  Serial.println("Inicializando módem...");
+  if (!modem.restart()) {
+    Serial.println("Error: no se detecta el SIM7600. Revisa TX/RX y energía.");
+    while (1);
+  }
+
+  // Encender el GNSS (modo autónomo). El primer fix en frío puede tardar varios minutos.
+  modem.sendAT("+CGPS=1,1");
+  modem.waitResponse(2000L);
+
+  if (!connectNetwork()) {
+    Serial.println("Se reintentará en el loop.");
+  }
+}
+
+void loop() {
+  if (!modem.isNetworkConnected() || !modem.isGprsConnected()) {
+    Serial.println("Conexión perdida. Reconectando...");
+    if (!connectNetwork()) {
+      delay(5000);
+      return;
+    }
+  }
+
+  if (lastSend == 0 || millis() - lastSend >= SEND_INTERVAL) {
+    double lat, lon;
+    if (getLocation(lat, lon)) {
+      lastSend = millis();
+      Serial.print("Latitud: ");  Serial.println(lat, 6);
+      Serial.print("Longitud: "); Serial.println(lon, 6);
+      sendToThingSpeak(lat, lon);
+    } else {
+      Serial.println("No se pudo obtener ubicación. Reintentando en 10 s...");
+      delay(10000);
+    }
+  }
 }
