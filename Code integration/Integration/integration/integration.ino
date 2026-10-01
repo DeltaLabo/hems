@@ -120,9 +120,9 @@ float cal_inaV_wind_m = 1.0, cal_inaV_wind_b = 0.0;
 float cal_inaI_wind_m = 1.0, cal_inaI_wind_b = 0.0;
 
 //AS7331
-float cal_uvA_m = 1.0, cal_uvA_b = 0.0;
-float cal_uvB_m = 1.0, cal_uvB_b = 0.0;
-float cal_uvC_m = 1.0, cal_uvC_b = 0.0;
+float cal_uvA_m = 1.01, cal_uvA_b = 690.0;
+float cal_uvB_m = 1.01, cal_uvB_b = 690.0;
+float cal_uvC_m = 1.01, cal_uvC_b = 690.0;
 
 // ---------- Variables globales compartidas ----------
 float   g_sht1T, g_sht1RH, g_sht2T, g_sht2RH;
