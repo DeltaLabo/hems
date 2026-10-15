@@ -35,7 +35,7 @@ Heat exposure monitoring and alert system HEMS
 
 * Nicole Prado Morales
 
-* Alejandro Rodríguez
+* Alejandro Rodríguez González
 
 * Bryan Suazo Fonseca
 
