@@ -101,6 +101,11 @@ bool wifi_disp = false;
 // ---------- Variables auxiliares ----------
 uint32_t lastEnergyUpdate = 0;
 
+// Intervalo de registro local. Los registros previos del proyecto usan
+// una muestra por minuto.
+const uint32_t CSV_INTERVAL_MS = 60UL * 1000UL;
+uint32_t lastCSVWriteMs = 0;
+
 // ---------- Objetos ----------
 // La dirección I2C se asigna en el begin(), dentro de Setup
 Adafruit_SHT31 sht1 = Adafruit_SHT31();
@@ -198,7 +203,7 @@ bool initSD() {
   if (!sd.begin(SdSpiConfig(SD_CS, SHARED_SPI, SD_SCK_MHZ(25)))) return false;
   if (!sd.exists("datos.csv")) {
     if (file.open("datos.csv", O_CREAT | O_WRITE)) {
-      file.println(F("datetime_iso8601,timestamp_ms,sht1_T_C,sht1_RH_pct,sht2_T_C,sht2_RH_pct,uvA,uvB,uvC,env_T_C,env_P_hPa,env_RH_pct,ina_wind_Vbus,ina_wind_current_mA,ina_wind_power_mW,overcurrent_wind_flag,ina_Vbus,ina_current_mA,ina_power_mW,energy_mWh,overcurrent_flag,,anemometro_voltage_V,air_speed_m_s,sensor_ok_flags"));
+      file.println(F("datetime_iso8601,timestamp_ms,sht1_T_C,sht1_RH_pct,sht2_T_C,sht2_RH_pct,uvA,uvB,uvC,env_T_C,env_P_hPa,env_RH_pct,ina_wind_Vbus,ina_wind_current_mA,ina_wind_power_mW,overcurrent_wind_flag,ina_Vbus,ina_current_mA,ina_power_mW,energy_mWh,overcurrent_flag,anemometro_voltage_V,air_speed_m_s,sensor_ok_flags"));
       file.close();
     }
   }
@@ -230,9 +235,12 @@ void appendCSV() {
     file.print(g_energy_mWh, 3); file.print(',');
     file.print(g_overCurrent ? 1 : 0); file.print(',');
     file.print(g_anemometroVoltaje, 3); file.print(',');
-    file.println(g_velocidadAire, 2);
+    file.print(g_velocidadAire, 2); file.print(',');
     file.println(g_okFlags);
     file.close();
+    Serial.println(F("Fila guardada en datos.csv"));
+  } else {
+    Serial.println(F("ERROR: no se pudo abrir datos.csv para escritura"));
   }
 }
 
@@ -264,7 +272,7 @@ void appendCSVBatch() {
   line += String(g_energy_mWh, 3) + ",";
   line += String(g_overCurrent ? 1 : 0) + ",";
   line += String(g_anemometroVoltaje, 3) + ",";
-  line += String(g_velocidadAire, 2);
+  line += String(g_velocidadAire, 2) + ",";
   line += String(g_okFlags);
 
   bufferSD += line + "\n";
@@ -769,10 +777,23 @@ void init() {
     //if (haveINA_2) ina219_wind.setCalibration_32V_2A();
   }
 
-    if (!haveLCD) {
-    Serial.println(F("Iniciando LCD - No se detecta"));
-    lcd.begin(16, 2);   // 16 columnas, 2 filas
-    lcd.backlight();    // enciende la luz de fondo si la librería lo soporta
+    Serial.println(F("Iniciando LCD..."));
+
+    haveLCD = lcd.begin(16, 2);
+
+    if (haveLCD) {
+      Serial.println(F("LCD detectada correctamente"));
+
+      lcd.backlight();
+      lcd.clear();
+
+      lcd.setCursor(0, 0);
+      lcd.print("LCD funcionando");
+
+      lcd.setCursor(0, 1);
+      lcd.print("Esperando datos");
+    } else {
+      Serial.println(F("ERROR: LCD no detectada"));
     }
 
 }
@@ -1006,11 +1027,24 @@ void setup() {
     //if (haveINA_2) ina219_wind.setCalibration_32V_2A();
   }
 
-  if (!haveLCD) {
-    Serial.println(F("Iniciando LCD - No se detecta"));
-    lcd.begin(16, 2);   // 16 columnas, 2 filas
-    lcd.backlight();    // enciende la luz de fondo si la librería lo soporta
-  }
+    Serial.println(F("Iniciando LCD..."));
+
+    haveLCD = lcd.begin(16, 2);
+
+    if (haveLCD) {
+      Serial.println(F("LCD detectada correctamente"));
+
+      lcd.backlight();
+      lcd.clear();
+
+      lcd.setCursor(0, 0);
+      lcd.print("LCD funcionando");
+
+      lcd.setCursor(0, 1);
+      lcd.print("Esperando datos");
+    } else {
+      Serial.println(F("ERROR: LCD no detectada"));
+    }
 }
 
 void loop() {
@@ -1083,20 +1117,36 @@ void loop() {
     g_overCurrent_wind = (g_inaI_wind > OVERCURRENT_THRESHOLD_mA);
   }
 
+  // --- Flags de sensores disponibles ---
+  g_okFlags = 0;
+  if (!isnan(g_sht1T) && !isnan(g_sht1RH))         g_okFlags |= (1 << 0);
+  if (!isnan(g_sht2T) && !isnan(g_sht2RH))         g_okFlags |= (1 << 1);
+  if (!isnan(g_uvA) && !isnan(g_uvB))              g_okFlags |= (1 << 2);
+  if (!isnan(g_envT) && !isnan(g_envP))            g_okFlags |= (1 << 3);
+  if (!isnan(g_inaV) && !isnan(g_inaI))            g_okFlags |= (1 << 4);
+  if (!isnan(g_inaV_wind) && !isnan(g_inaI_wind))  g_okFlags |= (1 << 5);
+
   if (haveLCD) {
   lcd.setCursor(0, 0);
   lcd.print("T1:");
   lcd.print(g_sht1T, 1);
   lcd.print(" T2:");
-  lcd.print(g_envT, 1);
+  lcd.print(g_sht2T, 1);
   lcd.clearEOL();
 
   lcd.setCursor(0, 1);
   lcd.print("H1:");
   lcd.print(g_sht1RH, 1);
   lcd.print(" H2:");
-  lcd.print(g_envRH, 1);
+  lcd.print(g_sht2RH, 1);
   lcd.clearEOL();
+}
+
+  // --- Guardar una fila en datos.csv cada minuto ---
+  const uint32_t nowCSV = millis();
+  if (haveSD && (nowCSV - lastCSVWriteMs >= CSV_INTERVAL_MS)) {
+    appendCSV();
+    lastCSVWriteMs = nowCSV;
   }
 
   if (modem.isNetworkConnected() || modem.isGprsConnected()) {
@@ -1110,15 +1160,6 @@ void loop() {
       delay(10000);
     }
   }
-
-  // --- Flags ---
-  g_okFlags = 0;
-  if (!isnan(g_sht1T) && !isnan(g_sht1RH))         g_okFlags |= (1 << 0);
-  if (!isnan(g_sht2T) && !isnan(g_sht2RH))         g_okFlags |= (1 << 1);
-  if (!isnan(g_uvA) && !isnan(g_uvB))              g_okFlags |= (1 << 2);
-  if (!isnan(g_envT) && !isnan(g_envP))            g_okFlags |= (1 << 3);
-  if (!isnan(g_inaV) && !isnan(g_inaI))            g_okFlags |= (1 << 4);
-  if (!isnan(g_inaV_wind) && !isnan(g_inaI_wind))  g_okFlags |= (1 << 5);
 
   // --- Serial print ---
   Serial.print(g_datetime); Serial.print(',');
@@ -1149,9 +1190,4 @@ void loop() {
 
   //banderas del promedio
 
-  // --- Guardar en SD ---
-  if(haveSD){  
-    appendCSVBatch();
-  }
-  
 }
