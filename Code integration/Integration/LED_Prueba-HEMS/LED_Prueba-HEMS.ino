@@ -106,6 +106,9 @@ uint32_t lastEnergyUpdate = 0;
 const uint32_t CSV_INTERVAL_MS = 60UL * 1000UL;
 uint32_t lastCSVWriteMs = 0;
 
+// Cambio de pantalla LCD cada 5 segundos
+const uint32_t LCD_PAGE_INTERVAL_MS = 5000UL;
+
 // ---------- Objetos ----------
 // La dirección I2C se asigna en el begin(), dentro de Setup
 Adafruit_SHT31 sht1 = Adafruit_SHT31();
@@ -955,6 +958,113 @@ void taskMenu(void * parameter) {
 
 }
 
+void lcdPrintValue(bool available, float value, uint8_t decimals) {
+  if (!available || isnan(value) || !isfinite(value)) {
+    lcd.print("--");
+  } else {
+    lcd.print(value, decimals);
+  }
+}
+
+void updateLCD() {
+  if (!haveLCD) return;
+
+  static uint8_t page = 0;
+  static uint32_t lastPageChange = 0;
+  static bool firstPage = true;
+
+  uint32_t now = millis();
+
+  if (!firstPage &&
+      (now - lastPageChange < LCD_PAGE_INTERVAL_MS)) {
+    return;
+  }
+
+  if (firstPage) {
+    firstPage = false;
+  } else {
+    page = (page + 1) % 6;
+  }
+
+  lastPageChange = now;
+  lcd.clear();
+
+  switch (page) {
+    // Temperatura de los SHT31
+    case 0:
+      lcd.setCursor(0, 0);
+      lcd.print("T1:");
+      lcdPrintValue(haveSHT1, g_sht1T, 1);
+      lcd.print(" C");
+
+      lcd.setCursor(0, 1);
+      lcd.print("T2:");
+      lcdPrintValue(haveSHT2, g_sht2T, 1);
+      lcd.print(" C");
+      break;
+
+    // Humedad relativa de los SHT31
+    case 1:
+      lcd.setCursor(0, 0);
+      lcd.print("HR1:");
+      lcdPrintValue(haveSHT1, g_sht1RH, 1);
+      lcd.print(" %");
+
+      lcd.setCursor(0, 1);
+      lcd.print("HR2:");
+      lcdPrintValue(haveSHT2, g_sht2RH, 1);
+      lcd.print(" %");
+      break;
+
+    // Temperatura y humedad ambiental del BME
+    case 2:
+      lcd.setCursor(0, 0);
+      lcd.print("Tamb:");
+      lcdPrintValue(haveBME || haveBMP, g_envT, 1);
+      lcd.print(" C");
+
+      lcd.setCursor(0, 1);
+      lcd.print("HRamb:");
+      lcdPrintValue(haveBME, g_envRH, 1);
+      lcd.print(" %");
+      break;
+
+    // Presión
+    case 3:
+      lcd.setCursor(0, 0);
+      lcd.print("Presion");
+
+      lcd.setCursor(0, 1);
+      lcdPrintValue(haveBME || haveBMP, g_envP, 1);
+      lcd.print(" hPa");
+      break;
+
+    // Velocidad del viento
+    case 4:
+      lcd.setCursor(0, 0);
+      lcd.print("Vel. viento");
+
+      lcd.setCursor(0, 1);
+      lcdPrintValue(true, g_velocidadAire, 2);
+      lcd.print(" m/s");
+      break;
+
+    // Radiación ultravioleta
+    case 5:
+      lcd.setCursor(0, 0);
+      lcd.print("A:");
+      lcdPrintValue(haveUV, g_uvA, 0);
+      lcd.print(" B:");
+      lcdPrintValue(haveUV, g_uvB, 0);
+
+      lcd.setCursor(0, 1);
+      lcd.print("C:");
+      lcdPrintValue(haveUV, g_uvC, 0);
+      lcd.print(" uW");
+      break;
+  }
+}
+
 void setup() {
 
   pinMode(LED_BUILTIN, OUTPUT);  // Configura el pin como salida
@@ -1126,21 +1236,8 @@ void loop() {
   if (!isnan(g_inaV) && !isnan(g_inaI))            g_okFlags |= (1 << 4);
   if (!isnan(g_inaV_wind) && !isnan(g_inaI_wind))  g_okFlags |= (1 << 5);
 
-  if (haveLCD) {
-  lcd.setCursor(0, 0);
-  lcd.print("T1:");
-  lcd.print(g_sht1T, 1);
-  lcd.print(" T2:");
-  lcd.print(g_sht2T, 1);
-  lcd.clearEOL();
-
-  lcd.setCursor(0, 1);
-  lcd.print("H1:");
-  lcd.print(g_sht1RH, 1);
-  lcd.print(" H2:");
-  lcd.print(g_sht2RH, 1);
-  lcd.clearEOL();
-}
+  // --- LCD ---
+  updateLCD();
 
   // --- Guardar una fila en datos.csv cada minuto ---
   const uint32_t nowCSV = millis();
