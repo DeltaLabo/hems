@@ -1271,10 +1271,10 @@ void loop() {
   Serial.print(g_envRH);    Serial.print(',');
   Serial.print("|g_ina1: "); Serial.print(g_inaV_wind/1000);Serial.print(',');
   Serial.print(g_inaI_wind);Serial.print(',');
-  Serial.print(g_inaP_wind);Serial.print(',');
+  Serial.print(g_inaP_wind/1000);Serial.print(',');
   Serial.print("|g_ina2: ");Serial.print(g_inaV/1000);     Serial.print(',');
   Serial.print(g_inaI);     Serial.print(',');
-  Serial.print(g_inaP);     Serial.print(',');
+  Serial.print(g_inaP/1000);     Serial.print(',');
   Serial.print(g_energy_mWh); Serial.print(',');
   Serial.print(g_overCurrent ? 1 : 0); Serial.print(',');
   Serial.print("|anemometro: ");Serial.print(g_anemometroVoltaje, 3); Serial.print(',');
